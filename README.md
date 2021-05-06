@@ -2,6 +2,24 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## How to initialize demo (mac version):
+
+1. Install Rust:
+
+   > curl https://sh.rustup.rs -sSf | sh
+
+2. install WebAssembly:
+
+   > curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+3. build wasm/rust demo module:
+
+   > wasm-pack build rustGridDemo
+
+4. install demo dependencies:
+
+   > yarn
+
 ## Available Scripts
 
 In the project directory, you can run:
