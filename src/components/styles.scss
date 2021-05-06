@@ -1,0 +1,25 @@
+.dob-wrapper {
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    .frequency-buttons {
+        display: flex;
+        flex-direction: row;
+        margin: 10px;
+        align-self: flex-end;
+        button {
+            cursor: pointer;
+            margin: 0px 2px;
+            &.selected {
+                background: #ff3b69;
+            }
+        }
+    }
+    .canvas-wrapper {
+        width: 100%;
+        min-height: 100px;
+        display: flex;
+        flex: 1;
+    }
+}
