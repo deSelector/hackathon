@@ -91,8 +91,8 @@
         "webpack-dev-server": "3.11.1"
     },
     "scripts": {
-        "start": "node scripts/start.js",
-        "build": "webpack --mode=production",
+        "start": "wasm-pack build rustGridDemo && node scripts/start.js",
+        "build": "wasm-pack build rustGridDemo && webpack --mode=production",
         "test": "node scripts/test.js",
         "build:dev": "webpack --mode=development",
         "build:prod": "webpack --mode=production",
