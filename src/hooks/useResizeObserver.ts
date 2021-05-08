@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 
-const useObserver = ({ callback, element }: { callback: ResizeObserverCallback, element: any }) => {
+const useResizeObserver = ({ callback, element }: { callback: ResizeObserverCallback, element: any }) => {
 
     const current = element?.current;
     const observer = useRef<any>(null);
@@ -29,9 +29,9 @@ const useObserver = ({ callback, element }: { callback: ResizeObserverCallback, 
     }, [current, callback, element]);
 };
 
-useObserver.propTypes = {
+useResizeObserver.propTypes = {
     element: PropTypes.object,
     callback: PropTypes.func,
 };
 
-export default useObserver;
+export default useResizeObserver;

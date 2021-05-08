@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import useObserver from "../hooks/useObserver";
+import useResizeObserver from "../hooks/useResizeObserver";
 import "./styles.scss";
 
 export interface ResizableCanvasProps {
@@ -33,7 +33,7 @@ export const ResizableCanvas: React.FC<ResizableCanvasProps> = (
     }
   };
 
-  useObserver({ callback, element: div });
+  useResizeObserver({ callback, element: div });
 
   return (
     <div ref={div} className={"canvas-wrapper"}>
