@@ -2,7 +2,7 @@ import { createContext, useState, useContext, useEffect } from 'react';
 
 export const WasmContext = createContext<any>(null);
 
-export const useWasm = () => {
+export const useRustGrid = () => {
     const [wasmObject, setWasmObject] = useState<any>({ wasm: null });
 
     useEffect(() => {

@@ -1,9 +1,9 @@
 import "./index.scss";
-import { useWasm } from "./hooks/useWasm";
+import { useRustGrid } from "./hooks";
 import { GridComponent } from "./components";
 
 function App() {
-  const [WasmProvider, wasmObject] = useWasm();
+  const [WasmProvider, wasmObject] = useRustGrid();
 
   return (
     <WasmProvider value={wasmObject}>

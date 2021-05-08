@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAnimationFrame } from "../hooks/useAnimationFrame";
-import { useLoadedWasm } from "../hooks/useWasm";
+import { useLoadedWasm } from "../hooks/useRustGrid";
 import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 import classnames from "classnames";
