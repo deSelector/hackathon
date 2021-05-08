@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAnimationFrame } from "../hooks/useAnimationFrame";
-import { useLoadedRustGrid } from "../hooks";
+import { useRustGrid } from "../hooks";
 import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 import classnames from "classnames";
@@ -14,7 +14,7 @@ export interface GridComponentProps {
 }
 
 export function GridComponent(props: GridComponentProps) {
-  const { wasm } = useLoadedRustGrid();
+  const grid = useRustGrid();
   const [freq, setFreq] = useState<number>(UPDATE_FREQ);
   const [size, setSize] = useState<{ width?: number; height?: number }>({
     width: 0,
@@ -35,8 +35,8 @@ export function GridComponent(props: GridComponentProps) {
   };
 
   const render = () => {
-    const dob = wasm?.DOB.new(props.id, size.width, size.height);
-    wasm?.paint(dob);
+    const dob = grid?.DOB.new(props.id, size.width, size.height);
+    grid?.paint(dob);
   };
 
   const onResize = ({ width, height }: { width: number; height: number }) => {
