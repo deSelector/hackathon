@@ -99,7 +99,7 @@ impl DOB {
                 let x = self.left() + (i as f64 * col_width).floor();
                 ctx.move_to(x, self.top());
                 ctx.line_to(x, self.bottom());
-                draw_vertical_line(&ctx, self.top(), self.bottom(), x);
+                vertical_line(&ctx, self.top(), self.bottom(), x);
             }
         }
 
@@ -109,13 +109,13 @@ impl DOB {
             loop {
                 let y = self.top() + (j * ROW_HEIGHT) as f64;
                 if y < self.bottom() {
-                    draw_horizontal_line(&ctx, self.left(), self.right(), y);
+                    horizontal_line(&ctx, self.left(), self.right(), y);
                     j += 1;
                 } else {
                     break;
                 }
             }
-            draw_horizontal_line(&ctx, self.left(), self.right(), self.bottom());
+            horizontal_line(&ctx, self.left(), self.right(), self.bottom());
         }
 
         ctx.stroke();
@@ -124,12 +124,10 @@ impl DOB {
     pub fn paint(&self) {
         let ctx = ctx(&self.id);
         let col_width = self.cell_width();
-        set_font(&ctx, "14px sans-serif");
-
         self.draw_grid();
 
         // red: #ff3b69
-        set_stroke(&ctx, "#03c67a");
+        set_fill_style(&ctx, "#03c67a");
         set_text_align(&ctx, "right");
         set_text_baseline(&ctx, "middle");
 
@@ -150,7 +148,7 @@ impl DOB {
                 for c in 0..COL_COUNT {
                     let x = self.left() + (c as f64 * col_width).floor();
                     let r = values[(i % 255) as usize];
-                    draw_text_aligned(&ctx, &r.to_string(), x, y, col_width, ROW_HEIGHT as f64);
+                    fill_text_aligned(&ctx, &r.to_string(), x, y, col_width, ROW_HEIGHT as f64);
                     i += 1;
                 }
             } else {
