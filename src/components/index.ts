@@ -1,1 +1,1 @@
-export * from './rustComp';
+export * from './grid';

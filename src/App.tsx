@@ -1,6 +1,6 @@
 import "./index.scss";
 import { useWasm } from "./hooks/useWasm";
-import { RustComponent } from "./components";
+import { GridComponent } from "./components";
 
 function App() {
   const [WasmProvider, wasmObject] = useWasm();
@@ -8,10 +8,10 @@ function App() {
   return (
     <WasmProvider value={wasmObject}>
       <div className="app">
-        <RustComponent id="canvas1" />
-        <RustComponent id="canvas2" />
-        <RustComponent id="canvas3" />
-        <RustComponent id="canvas4" />
+        <GridComponent id="canvas1" />
+        <GridComponent id="canvas2" />
+        <GridComponent id="canvas3" />
+        <GridComponent id="canvas4" />
       </div>
     </WasmProvider>
   );

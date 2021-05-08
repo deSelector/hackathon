@@ -9,11 +9,11 @@ const UPDATE_FREQ = 75;
 
 const frequencies = [0, 10, 25, 50, 75, 100, 500, 750, 1000];
 
-export interface RustComponentProps {
+export interface GridComponentProps {
   id: string;
 }
 
-export function RustComponent(props: RustComponentProps) {
+export function GridComponent(props: GridComponentProps) {
   const { wasm } = useLoadedWasm();
   const [freq, setFreq] = useState<number>(UPDATE_FREQ);
   const [size, setSize] = useState<{ width?: number; height?: number }>({
