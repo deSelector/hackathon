@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAnimationFrame } from "../hooks/useAnimationFrame";
-import { useLoadedWasm } from "../hooks/useRustGrid";
+import { useLoadedRustGrid } from "../hooks";
 import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 import classnames from "classnames";
@@ -14,7 +14,7 @@ export interface GridComponentProps {
 }
 
 export function GridComponent(props: GridComponentProps) {
-  const { wasm } = useLoadedWasm();
+  const { wasm } = useLoadedRustGrid();
   const [freq, setFreq] = useState<number>(UPDATE_FREQ);
   const [size, setSize] = useState<{ width?: number; height?: number }>({
     width: 0,

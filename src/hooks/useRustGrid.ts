@@ -1,26 +1,26 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 
-export const WasmContext = createContext<any>(null);
+const context = createContext<any>(null);
 
 export const useRustGrid = () => {
-    const [wasmObject, setWasmObject] = useState<any>({ wasm: null });
+    const [grid, setGrid] = useState<any>({ wasm: null });
 
     useEffect(() => {
         (async () => {
             try {
                 const wasm = await import('rust-grid');
-                setWasmObject({ wasm });
+                setGrid({ wasm });
             } catch (e) {
                 console.error(e);
-                setWasmObject({ wasm: null });
+                setGrid({ wasm: null });
             }
         })();
     }, []);
 
-    return [WasmContext.Provider, wasmObject];
+    return [context.Provider, grid];
 };
 
-export const useLoadedWasm = () => {
-    const { wasm } = useContext(WasmContext);
+export const useLoadedRustGrid = () => {
+    const { wasm } = useContext(context);
     return { wasm };
 };
