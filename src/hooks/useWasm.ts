@@ -8,7 +8,7 @@ export const useWasm = () => {
     useEffect(() => {
         (async () => {
             try {
-                const wasm = await import('rust-grid-demo');
+                const wasm = await import('rust-grid');
                 setWasmObject({ wasm });
             } catch (e) {
                 console.error(e);

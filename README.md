@@ -10,7 +10,7 @@
 
 3. build wasm/rust demo module:
 
-   > wasm-pack build rustGridDemo
+   > wasm-pack build rustGrid
 
 4. install demo dependencies:
 
