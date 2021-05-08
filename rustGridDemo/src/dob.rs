@@ -13,8 +13,8 @@ macro_rules! _console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
-const COL_COUNT: u32 = 10;
-const ROW_HEIGHT: u32 = 26;
+const COL_COUNT: u32 = 8;
+const ROW_HEIGHT: u32 = 30;
 const MARGIN: u32 = 20;
 
 #[wasm_bindgen]

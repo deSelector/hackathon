@@ -17,10 +17,18 @@ export const ResizableCanvas: React.FC<ResizableCanvasProps> = (
   const callback = () => {
     if (div.current && canvas.current) {
       const { clientWidth: width, clientHeight: height } = div.current;
-      canvas.current.width = width;
-      canvas.current.height = height;
+      const ctx = canvas.current.getContext("2d");
+      const scale = window.devicePixelRatio;
+      canvas.current.width = Math.floor(width * scale);
+      canvas.current.height = Math.floor(height * scale);
       canvas.current.style.width = `${width}px`;
       canvas.current.style.height = `${height}px`;
+
+      if (ctx) {
+        ctx.font = "16px sans-serif";
+        ctx.scale(scale, scale);
+      }
+
       onResize?.({ width, height });
     }
   };
