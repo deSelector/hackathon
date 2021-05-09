@@ -4,6 +4,7 @@ import { useRustGrid } from "../hooks";
 import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 import classnames from "classnames";
+import { useDataContext } from "../context";
 
 const UPDATE_FREQ = 75;
 
@@ -15,6 +16,7 @@ export interface GridComponentProps {
 
 export function GridComponent(props: GridComponentProps) {
   const grid = useRustGrid();
+  const { counter, setCounter } = useDataContext();
   const [freq, setFreq] = useState<number>(UPDATE_FREQ);
   const [size, setSize] = useState<{ width?: number; height?: number }>({
     width: 0,
@@ -27,14 +29,15 @@ export function GridComponent(props: GridComponentProps) {
         key={value}
         className={classnames({ selected: freq === value })}
         title={`update frequency: ${value} msec`}
+        onDoubleClick={() => setCounter(2)}
         onClick={() => setFreq(value)}
       >
-        {value}
+        {`${value}/${counter || 0}`}
       </button>
     ));
   };
 
-  const render = () => {
+  const tick = () => {
     const dob = grid?.DOB.new(props.id, size.width, size.height);
     grid?.paint(dob);
   };
@@ -45,8 +48,9 @@ export function GridComponent(props: GridComponentProps) {
     }
   };
 
-  useAnimationFrame(freq, render);
+  useAnimationFrame(freq, tick);
 
+  console.log(`CONTEXT IN GRID: ${counter}`, counter);
   return (
     <div className={"dob-wrapper"}>
       <div className="frequency-buttons">{buttons()}</div>
