@@ -148,7 +148,14 @@ impl DOB {
                 for c in 0..COL_COUNT {
                     let x = self.left() + (c as f64 * col_width).floor();
                     let v = buffer[(i % len) as usize];
-                    fill_text_aligned(&ctx, &v.to_string(), x, y, col_width, ROW_HEIGHT as f64);
+                    fill_text_aligned(
+                        &ctx,
+                        &format_args!("{0:.3}", v).to_string(),
+                        x,
+                        y,
+                        col_width,
+                        ROW_HEIGHT as f64,
+                    );
                     i += 1;
                 }
             } else {
