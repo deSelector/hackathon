@@ -12,8 +12,8 @@ function App() {
         <div className="app">
           <GridComponent id="canvas1" />
           <GridComponent id="canvas2" />
-          <GridComponent id="canvas3" />
-          <GridComponent id="canvas4" />
+          {/* <GridComponent id="canvas3" />
+          <GridComponent id="canvas4" /> */}
         </div>
       </GridContext.Provider>
     </DataProvider>

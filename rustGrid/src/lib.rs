@@ -23,6 +23,6 @@ macro_rules! _console_log {
 }
 
 #[wasm_bindgen]
-pub fn paint(dob: DOB) {
-    dob.paint();
+pub fn paint(dob: DOB, buffer: &mut [f64]) {
+    dob.paint(buffer);
 }

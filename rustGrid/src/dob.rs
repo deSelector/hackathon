@@ -121,17 +121,17 @@ impl DOB {
         ctx.stroke();
     }
 
-    pub fn paint(&self) {
+    pub fn paint(&self, buffer: &mut [f64]) {
         let ctx = ctx(&self.id);
         let col_width = self.cell_width();
+        let len = buffer.len() as u8;
+
         self.draw_grid();
 
         // red: #ff3b69
         set_fill_style(&ctx, "#03c67a");
         set_text_align(&ctx, "right");
         set_text_baseline(&ctx, "middle");
-
-        let values = &get_random_255().unwrap();
 
         clip_begin(
             &ctx,
@@ -147,8 +147,8 @@ impl DOB {
             if y < self.bottom() as f64 {
                 for c in 0..COL_COUNT {
                     let x = self.left() + (c as f64 * col_width).floor();
-                    let r = values[(i % 255) as usize];
-                    fill_text_aligned(&ctx, &r.to_string(), x, y, col_width, ROW_HEIGHT as f64);
+                    let v = buffer[(i % len) as usize];
+                    fill_text_aligned(&ctx, &v.to_string(), x, y, col_width, ROW_HEIGHT as f64);
                     i += 1;
                 }
             } else {

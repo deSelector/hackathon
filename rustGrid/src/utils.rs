@@ -65,7 +65,8 @@ pub fn _performance() -> Performance {
         .expect("performance should be available")
 }
 
-pub fn get_random_255() -> Result<[u8; 255], getrandom::Error> {
+// ex: let values = &get_random_255().unwrap();
+pub fn _get_random_255() -> Result<[u8; 255], getrandom::Error> {
     let mut buf = [0u8; 255];
     getrandom::getrandom(&mut buf)?;
     Ok(buf)
