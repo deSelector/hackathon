@@ -142,21 +142,25 @@ impl DOB {
         );
 
         let mut i = 0;
-        for r in 0.. {
+        'exit_all: for r in 0.. {
             let y = self.left() + (r * ROW_HEIGHT) as f64;
             if y < self.bottom() as f64 {
                 for c in 0..COL_COUNT {
-                    let x = self.left() + (c as f64 * col_width).floor();
-                    let v = buffer[(i % len) as usize];
-                    fill_text_aligned(
-                        &ctx,
-                        &format_args!("{0:.3}", v).to_string(),
-                        x,
-                        y,
-                        col_width,
-                        ROW_HEIGHT as f64,
-                    );
-                    i += 1;
+                    if i < len {
+                        let x = self.left() + (c as f64 * col_width).floor();
+                        let v = buffer[i as usize];
+                        fill_text_aligned(
+                            &ctx,
+                            &format_args!("{0:.3}", v).to_string(),
+                            x,
+                            y,
+                            col_width,
+                            ROW_HEIGHT as f64,
+                        );
+                        i += 1;
+                    } else {
+                        break 'exit_all;
+                    }
                 }
             } else {
                 break;

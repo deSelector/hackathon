@@ -10,8 +10,9 @@ const UPDATE_FREQ = 75;
 
 const frequencies = [0, 10, 25, 50, 75, 100, 500, 750, 1000];
 
-const data = new Array(100);
-const buff = new Float64Array(data);
+const ITEM_COUNT = 1000;
+const buffer = new ArrayBuffer(ITEM_COUNT * 8);
+
 export interface GridComponentProps {
   id: string;
 }
@@ -42,11 +43,16 @@ export function GridComponent(props: GridComponentProps) {
   const tick = () => {
     const dob = grid?.DOB.new(props.id, size.width, size.height);
 
-    for (let i = 0; i < buff.length; i++) {
-      buff[i] = Math.random();
+    const data = new Float64Array(
+      buffer,
+      0,
+      Math.floor(Math.random() * ITEM_COUNT) + 1
+    );
+    for (let i = 0; i < data.length; i++) {
+      data[i] = Math.random();
     }
 
-    grid?.paint(dob, buff);
+    grid?.paint(dob, data);
   };
 
   const onResize = ({ width, height }: { width: number; height: number }) => {
