@@ -13,7 +13,7 @@ macro_rules! _console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
-const COL_COUNT: u32 = 6;
+const COL_COUNT: u32 = 4;
 const ROW_HEIGHT: u32 = 30;
 const MARGIN: u32 = 20;
 
@@ -130,7 +130,6 @@ impl DOB {
 
         // red: #ff3b69
         set_fill_style(&ctx, "#03c67a");
-        set_text_align(&ctx, "right");
         set_text_baseline(&ctx, "middle");
 
         clip_begin(
@@ -149,6 +148,7 @@ impl DOB {
                     if i < len {
                         let x = self.left() + (c as f64 * col_width).floor();
                         let v = buffer[i as usize];
+                        let align = if c < COL_COUNT / 2 { "right" } else { "left" };
                         fill_text_aligned(
                             &ctx,
                             &format_args!("{0:.3}", v).to_string(),
@@ -156,6 +156,7 @@ impl DOB {
                             y,
                             col_width,
                             ROW_HEIGHT as f64,
+                            align,
                         );
                         i += 1;
                     } else {

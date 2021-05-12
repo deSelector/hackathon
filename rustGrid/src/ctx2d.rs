@@ -23,13 +23,15 @@ pub fn fill_text_aligned(
     y: f64,
     width: f64,
     height: f64,
+    text_align: &str,
 ) {
-    const PADDING: f64 = 5.0;
+    const PADDING_H: f64 = 10.0;
     let dy = y + height / 2.0;
-    match &*ctx.text_align() {
-        "right" => ctx.fill_text(v, x + width - PADDING, dy).unwrap(),
+    set_text_align(ctx, text_align);
+    match text_align {
+        "right" => ctx.fill_text(v, x + width - PADDING_H, dy).unwrap(),
         "center" => ctx.fill_text(v, x + width / 2.0, dy).unwrap(),
-        _ => ctx.fill_text(v, x + PADDING, dy).unwrap(),
+        _ => ctx.fill_text(v, x + PADDING_H, dy).unwrap(),
     };
 }
 
