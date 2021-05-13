@@ -7,6 +7,7 @@ mod utils;
 
 #[macro_use]
 extern crate more_asserts;
+extern crate enum_iterator;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.

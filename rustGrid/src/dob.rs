@@ -1,5 +1,6 @@
 use crate::ctx2d::*;
 use crate::utils::*;
+use enum_iterator::IntoEnumIterator;
 use std::f64;
 use wasm_bindgen::prelude::*;
 use web_sys::CanvasRenderingContext2d;
@@ -19,9 +20,15 @@ const ROW_HEIGHT: u32 = 30;
 const MARGIN: u32 = 20;
 
 #[derive(PartialEq, Copy, Clone)]
-enum Side {
+pub enum Side {
     Bid = 0,
     Ask = 1,
+}
+
+#[derive(PartialEq, Copy, Clone, IntoEnumIterator)]
+pub enum Field {
+    Price = 0,
+    Size = 1,
 }
 
 #[wasm_bindgen]
@@ -155,7 +162,7 @@ impl DOB {
         let row_count = (data.len() / COL_SIZE_COUNT as usize) as u32;
         let col_width = self.cell_width();
         let dx = self.start_x(side);
-        let align = self.align(side);
+        let align = self.cell_align(side);
 
         assert_eq!(
             data.len() as f64 % COL_SIZE_COUNT as f64,
@@ -168,12 +175,12 @@ impl DOB {
         for r in 0.. {
             let y = self.top() + (r * ROW_HEIGHT) as f64;
             if y < self.bottom() as f64 && r < row_count {
-                for c in 0..COL_SIZE_COUNT {
-                    let x = dx + (c as f64 * col_width).floor();
-                    let v = self.value(data, r, c, side);
+                for field in Field::into_enum_iter() {
+                    let x = dx + self.cell_x(side, field);
+                    let v = self.cell_value(data, r, field);
                     fill_text_aligned(
                         &ctx,
-                        &format_args!("{0:.3}", v).to_string(),
+                        &format_args!("{:.*}", self.cell_precision(field), v).to_string(),
                         x,
                         y,
                         col_width,
@@ -186,13 +193,14 @@ impl DOB {
             }
         }
     }
+}
 
-    fn value(&self, data: &[f64], row: u32, col: u32, side: Side) -> f64 {
+impl DOB {
+    fn cell_value(&self, data: &[f64], row: u32, field: Field) -> f64 {
         let index = row * COL_SIZE_COUNT
-            + if side == Side::Bid {
-                COL_SIZE_COUNT - col - 1
-            } else {
-                col
+            + match field {
+                Field::Price => 0,
+                Field::Size => 1,
             };
 
         assert_lt!(
@@ -207,18 +215,36 @@ impl DOB {
 
     fn start_x(&self, side: Side) -> f64 {
         self.left()
-            + if side == Side::Bid {
-                0.0
-            } else {
-                self.cell_width() * COL_SIZE_COUNT as f64
+            + match side {
+                Side::Bid => 0.0,
+                Side::Ask => self.cell_width() * COL_SIZE_COUNT as f64,
             }
     }
 
-    fn align(&self, side: Side) -> &str {
-        if side == Side::Bid {
-            "right"
-        } else {
-            "left"
+    fn cell_x(&self, side: Side, field: Field) -> f64 {
+        match side {
+            Side::Bid => match field {
+                Field::Price => self.cell_width(),
+                Field::Size => 0.0,
+            },
+            Side::Ask => match field {
+                Field::Price => 0.0,
+                Field::Size => self.cell_width(),
+            },
+        }
+    }
+
+    fn cell_align(&self, side: Side) -> &str {
+        match side {
+            Side::Bid => "right",
+            Side::Ask => "left",
+        }
+    }
+
+    fn cell_precision(&self, field: Field) -> usize {
+        match field {
+            Field::Price => 3,
+            Field::Size => 5,
         }
     }
 }

@@ -22,25 +22,25 @@ export interface DOBSide {
 }
 
 export function generateDOBData(max_row_count: number): DOBData {
-  const bid_row_count = Math.floor(Math.random() * (max_row_count + 1));
-  const ask_row_count = Math.floor(Math.random() * (max_row_count + 1));
+  const prices = Array(Math.floor(Math.random() * (2 * max_row_count + 1)))
+    .fill(0)
+    .map(() => Math.random() * 20.0)
+    .sort((a, b) => a - b);
 
-  const prices = Array.from(Array(bid_row_count + ask_row_count))
-    .map(Math.random)
-    .sort();
+  const bid_count = Math.floor(prices.length / 2);
 
   return {
     bids: prices
-      .slice(0, bid_row_count)
+      .slice(0, bid_count)
       .reverse()
       .map(
         (price) =>
           ({
             price,
-            size: Math.random(),
+            size: Math.random() * 5.0,
           } as DOBSide)
       ),
-    asks: prices.slice(bid_row_count).map(
+    asks: prices.slice(bid_count).map(
       (price) =>
         ({
           price,
