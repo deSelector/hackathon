@@ -15,7 +15,9 @@ macro_rules! _console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
-const COL_SIZE_COUNT: u32 = 2;
+const DATA_WIDTH: u32 = 3; // price, size, cumSize
+const SIDE_COL_COUNT: u32 = 2;
+const TOTAL_COL_COUNT: u32 = SIDE_COL_COUNT * 2;
 const ROW_HEIGHT: u32 = 30;
 const MARGIN: u32 = 20;
 
@@ -43,6 +45,10 @@ impl DOB {
     pub fn new(id: String, width: u32, height: u32) -> DOB {
         DOB { id, width, height }
     }
+
+    pub fn get_data_width() -> u32 {
+        DATA_WIDTH
+    }
     pub fn width(&self) -> u32 {
         self.width
     }
@@ -58,8 +64,11 @@ impl DOB {
     pub fn set_height(&mut self, height: u32) {
         self.height = height;
     }
+}
+
+impl DOB {
     fn cell_width(&self) -> f64 {
-        self.client_width() / (COL_SIZE_COUNT as f64 * 2.0)
+        self.client_width() / TOTAL_COL_COUNT as f64
     }
     fn client_width(&self) -> f64 {
         (self.width - 2 * MARGIN) as f64
@@ -109,7 +118,7 @@ impl DOB {
 
         // Vertical lines.
         {
-            for i in 0..(COL_SIZE_COUNT * 2) + 1 {
+            for i in 0..TOTAL_COL_COUNT + 1 {
                 let x = self.left() + (i as f64 * col_width).floor();
                 ctx.move_to(x, self.top());
                 ctx.line_to(x, self.bottom());
@@ -159,17 +168,17 @@ impl DOB {
     }
 
     fn paint_side(&self, ctx: &CanvasRenderingContext2d, data: &[f64], side: Side) {
-        let row_count = (data.len() / COL_SIZE_COUNT as usize) as u32;
+        let row_count = (data.len() / DATA_WIDTH as usize) as u32;
         let col_width = self.cell_width();
         let dx = self.start_x(side);
         let align = self.cell_align(side);
 
         assert_eq!(
-            data.len() as f64 % COL_SIZE_COUNT as f64,
+            data.len() as f64 % DATA_WIDTH as f64,
             0.0,
             "buffer size {} not divisible by {}",
             data.len(),
-            COL_SIZE_COUNT
+            DATA_WIDTH
         );
 
         for r in 0.. {
@@ -197,11 +206,7 @@ impl DOB {
 
 impl DOB {
     fn cell_value(&self, data: &[f64], row: u32, field: Field) -> f64 {
-        let index = row * COL_SIZE_COUNT
-            + match field {
-                Field::Price => 0,
-                Field::Size => 1,
-            };
+        let index = row * DATA_WIDTH + field as u32;
 
         assert_lt!(
             index as usize,
@@ -217,15 +222,15 @@ impl DOB {
         self.left()
             + match side {
                 Side::Bid => 0.0,
-                Side::Ask => self.cell_width() * COL_SIZE_COUNT as f64,
+                Side::Ask => self.cell_width() * SIDE_COL_COUNT as f64,
             }
     }
 
     fn cell_x(&self, side: Side, field: Field) -> f64 {
         match side {
             Side::Bid => match field {
-                Field::Price => self.cell_width(),
                 Field::Size => 0.0,
+                Field::Price => self.cell_width(),
             },
             Side::Ask => match field {
                 Field::Price => 0.0,
