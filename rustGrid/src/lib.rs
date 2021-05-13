@@ -5,6 +5,9 @@ mod ctx2d;
 mod dob;
 mod utils;
 
+#[macro_use]
+extern crate more_asserts;
+
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
 #[cfg(feature = "wee_alloc")]
@@ -23,6 +26,6 @@ macro_rules! _console_log {
 }
 
 #[wasm_bindgen]
-pub fn paint(dob: DOB, buffer: &mut [f64]) {
-    dob.paint(buffer);
+pub fn paint(dob: DOB, bids: &[f64], asks: &[f64]) {
+    dob.paint(bids, asks);
 }
