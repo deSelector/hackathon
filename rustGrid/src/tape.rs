@@ -1,4 +1,5 @@
 use crate::ctx2d::*;
+use crate::grid::*;
 use crate::utils::*;
 use chrono::prelude::*;
 use chrono::Local;
@@ -88,10 +89,10 @@ impl Tape {
 
 impl Tape {
     fn draw_grid(&self) {
-        let ctx = ctx(&self.id);
+        let ctx = &ctx(&self.id);
 
         fill_rect(
-            &ctx,
+            ctx,
             0.0,
             0.0,
             self.width as f64,
@@ -100,7 +101,7 @@ impl Tape {
         );
 
         fill_rect(
-            &ctx,
+            ctx,
             self.left(),
             self.top(),
             self.client_width(),
@@ -119,7 +120,7 @@ impl Tape {
                 let x = self.left() + (i as f64 * col_width).floor();
                 ctx.move_to(x, self.top());
                 ctx.line_to(x, self.bottom());
-                vertical_line(&ctx, self.top(), self.bottom(), x);
+                vertical_line(ctx, self.top(), self.bottom(), x);
             }
         }
 
@@ -129,38 +130,38 @@ impl Tape {
             loop {
                 let y = self.top() + (j * ROW_HEIGHT) as f64;
                 if y < self.bottom() {
-                    horizontal_line(&ctx, self.left(), self.right(), y);
+                    horizontal_line(ctx, self.left(), self.right(), y);
                     j += 1;
                 } else {
                     break;
                 }
             }
-            horizontal_line(&ctx, self.left(), self.right(), self.bottom());
+            horizontal_line(ctx, self.left(), self.right(), self.bottom());
         }
 
         ctx.stroke();
     }
 
     pub fn paint(&self, trades: &[f64]) {
-        let ctx = ctx(&self.id);
+        let ctx = &ctx(&self.id);
 
         self.draw_grid();
 
         // red: #ff3b69
-        set_fill_style(&ctx, "#03c67a");
-        set_text_baseline(&ctx, "middle");
+        set_fill_style(ctx, "#03c67a");
+        set_text_baseline(ctx, "middle");
 
         clip_begin(
-            &ctx,
+            ctx,
             self.left(),
             self.top(),
             self.client_width(),
             self.client_height(),
         );
 
-        self.draw_tape(&ctx, trades);
+        self.draw_tape(ctx, trades);
 
-        clip_end(&ctx);
+        clip_end(ctx);
     }
 
     fn draw_tape(&self, ctx: &CanvasRenderingContext2d, data: &[f64]) {
@@ -181,8 +182,17 @@ impl Tape {
                 for &field in [Field::Price, Field::Size, Field::Time].iter() {
                     let x = self.left() + self.cell_x(field);
                     let v = self.cell_value(data, r as i32, field).unwrap_or_default();
+                    Grid::draw_highlight(
+                        ctx,
+                        x,
+                        y,
+                        col_width,
+                        ROW_HEIGHT as f64,
+                        self.cell_value(data, r as i32, Field::Time)
+                            .unwrap_or_default(),
+                    );
                     fill_text_aligned(
-                        &ctx,
+                        ctx,
                         &self.format_value(v, field),
                         x,
                         y,

@@ -1,4 +1,5 @@
 use crate::ctx2d::*;
+use crate::grid::Grid;
 use crate::utils::*;
 use enum_iterator::IntoEnumIterator;
 use std::f64;
@@ -15,7 +16,7 @@ macro_rules! _console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
-const DATA_WIDTH: u32 = 3; // price, size, cumSize
+const DATA_WIDTH: u32 = 4; // price, size, cumSize, time
 const SIDE_COL_COUNT: u32 = 2;
 const TOTAL_COL_COUNT: u32 = SIDE_COL_COUNT * 2;
 const ROW_HEIGHT: u32 = 30;
@@ -32,6 +33,7 @@ pub enum Field {
     Price = 0,
     Size = 1,
     CumSize = 2,
+    Time = 3,
 }
 
 #[wasm_bindgen]
@@ -104,10 +106,10 @@ impl DOB {
 
 impl DOB {
     fn draw_grid(&self) {
-        let ctx = ctx(&self.id);
+        let ctx = &ctx(&self.id);
 
         fill_rect(
-            &ctx,
+            ctx,
             0.0,
             0.0,
             self.width as f64,
@@ -116,7 +118,7 @@ impl DOB {
         );
 
         fill_rect(
-            &ctx,
+            ctx,
             self.left(),
             self.top(),
             self.client_width(),
@@ -135,7 +137,7 @@ impl DOB {
                 let x = self.left() + (i as f64 * col_width).floor();
                 ctx.move_to(x, self.top());
                 ctx.line_to(x, self.bottom());
-                vertical_line(&ctx, self.top(), self.bottom(), x);
+                vertical_line(ctx, self.top(), self.bottom(), x);
             }
         }
 
@@ -145,41 +147,40 @@ impl DOB {
             loop {
                 let y = self.top() + (j * ROW_HEIGHT) as f64;
                 if y < self.bottom() {
-                    horizontal_line(&ctx, self.left(), self.right(), y);
+                    horizontal_line(ctx, self.left(), self.right(), y);
                     j += 1;
                 } else {
                     break;
                 }
             }
-            horizontal_line(&ctx, self.left(), self.right(), self.bottom());
+            horizontal_line(ctx, self.left(), self.right(), self.bottom());
         }
 
         ctx.stroke();
     }
 
     pub fn paint(&self, bids: &[f64], asks: &[f64]) {
-        let ctx = ctx(&self.id);
+        let ctx = &ctx(&self.id);
 
         self.draw_grid();
 
         // red: #ff3b69
-        set_fill_style(&ctx, "#03c67a");
-        set_text_baseline(&ctx, "middle");
+        set_fill_style(ctx, "#03c67a");
+        set_text_baseline(ctx, "middle");
 
         clip_begin(
-            &ctx,
+            ctx,
             self.left(),
             self.top(),
             self.client_width(),
             self.client_height(),
         );
 
-        self.draw_book_side(&ctx, bids, Side::Bid);
-        self.draw_book_side(&ctx, asks, Side::Ask);
+        self.draw_book_side(ctx, bids, Side::Bid);
+        self.draw_book_side(ctx, asks, Side::Ask);
+        self.draw_cumulative(ctx, bids, asks);
 
-        self.draw_cumulative(&ctx, bids, asks);
-
-        clip_end(&ctx);
+        clip_end(ctx);
     }
 
     fn draw_book_side(&self, ctx: &CanvasRenderingContext2d, data: &[f64], side: Side) {
@@ -202,8 +203,18 @@ impl DOB {
                 for &field in [Field::Price, Field::Size].iter() {
                     let x = dx + self.cell_x(side, field);
                     let v = self.cell_value(data, r as i32, field).unwrap_or_default();
+
+                    Grid::draw_highlight(
+                        ctx,
+                        x,
+                        y,
+                        col_width,
+                        ROW_HEIGHT as f64,
+                        self.cell_value(data, r as i32, Field::Time)
+                            .unwrap_or_default(),
+                    );
                     fill_text_aligned(
-                        &ctx,
+                        ctx,
                         &format_args!("{:.*}", self.cell_precision(field), v).to_string(),
                         x,
                         y,
@@ -264,7 +275,7 @@ impl DOB {
                     Side::Ask => "#ff3b6960",
                 };
 
-                fill_rect(&ctx, x, y, len, ROW_HEIGHT as f64, color);
+                fill_rect(ctx, x, y, len, ROW_HEIGHT as f64, color);
             } else {
                 break;
             }
