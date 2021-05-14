@@ -4,8 +4,8 @@ let bid_buffer: ArrayBuffer;
 let ask_buffer: ArrayBuffer;
 let raw_data: Quote[];
 
-const MAX_ROW_COUNT = 50;
-const MIN_ROW_COUNT = 30;
+const MAX_ROW_COUNT = 100;
+const MIN_ROW_COUNT = 50;
 
 interface Quote {
   price: number;
@@ -52,9 +52,12 @@ export function generateDOBData(
     });
   }
 
-  // inject small changes in each cycle
-  let index = Math.floor(raw_data.length * Math.random());
-  raw_data[index] = item();
+  // inject a bunch of changes during each cycle
+  const count = Math.floor(Math.random() * 10);
+  for (let i = 0; i < count; i++) {
+    let index = Math.floor(raw_data.length * Math.random());
+    raw_data[index] = item();
+  }
 
   // split data in two halves, one for bids and one for asks
   raw_data.sort((a, b) => a.price - b.price);

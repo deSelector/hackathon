@@ -33,8 +33,11 @@ export function generateTradeData(data_width: number): Float64Array {
     raw_data.sort((a, b) => b.time - a.time);
   }
 
-  // insert a new trade on each cycle
-  raw_data.unshift(item());
+  // insert a random bunch of trades on each cycle
+  const items = Array(Math.floor(Math.random() * 5))
+    .fill(0)
+    .map(() => item());
+  raw_data.unshift(...items);
 
   raw_data = raw_data.slice(0, MAX_ROW_COUNT);
 

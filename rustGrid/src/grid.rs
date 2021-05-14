@@ -16,7 +16,7 @@ impl Grid {
         let now = Date::new_0().get_time() as i64;
         if now - time as i64 <= 250 {
             ctx.save();
-            fill_rect(ctx, x, y, width, height, "#ffff0088");
+            fill_rect(ctx, x, y, width, height, "#ffffff22");
             ctx.restore();
         }
     }

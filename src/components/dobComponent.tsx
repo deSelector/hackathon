@@ -9,7 +9,7 @@ import { generateDOBData } from "../context";
 
 const frequencies = [0, 50, 100, 250, 500, 750, 1000, 10000];
 
-const UPDATE_FREQ = 750;
+const UPDATE_FREQ = 250;
 
 export interface DOBComponentProps {
   id: string;
