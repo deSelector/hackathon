@@ -1,6 +1,7 @@
 use crate::ctx2d::*;
 use crate::utils::*;
-use chrono::NaiveDateTime;
+use chrono::prelude::*;
+use chrono::Local;
 use enum_iterator::IntoEnumIterator;
 use std::f64;
 use wasm_bindgen::prelude::*;
@@ -200,7 +201,8 @@ impl Tape {
 impl Tape {
     fn format_value(&self, value: f64, field: Field) -> String {
         match field {
-            Field::Time => NaiveDateTime::from_timestamp(value as i64 / 1000, 0)
+            Field::Time => Local
+                .timestamp(value as i64 / 1000, 0)
                 .format("%r")
                 .to_string(),
             _ => format_args!("{:.*}", self.cell_precision(field), value).to_string(),
