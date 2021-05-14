@@ -261,7 +261,7 @@ impl DOB {
 
                 let color = match side {
                     Side::Bid => "#0c433899",
-                    Side::Ask => "#ff3b6980",
+                    Side::Ask => "#ff3b6960",
                 };
 
                 fill_rect(&ctx, x, y, len, ROW_HEIGHT as f64, color);
