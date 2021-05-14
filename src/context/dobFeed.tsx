@@ -1,3 +1,5 @@
+import { fill } from "./common";
+
 let bid_buffer: ArrayBuffer;
 let ask_buffer: ArrayBuffer;
 let raw_data: Quote[];
@@ -14,19 +16,6 @@ interface Quote {
 export function generateDOBData(
   data_width: number
 ): { bids: Float64Array; asks: Float64Array } {
-  ///////
-  function fill(buffer: ArrayBuffer, data: Quote[]): Float64Array {
-    const array = new Float64Array(buffer, 0, data.length * data_width);
-    for (let i = 0, c = 0, sum = 0; i < data.length; i++) {
-      const v = data[i];
-      if (data_width >= 1) array[c++] = v.price;
-      if (data_width >= 2) array[c++] = v.size;
-      if (data_width >= 3) array[c++] = sum += v.size;
-      if (data_width >= 4) array[c++] = v.dirty;
-    }
-    return array;
-  }
-
   if (!raw_data) {
     bid_buffer = bid_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
     ask_buffer = ask_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
@@ -44,6 +33,24 @@ export function generateDOBData(
       );
   }
 
+  function toBuffer(buffer: ArrayBuffer, data: Quote[]) {
+    let sum = 0;
+    return fill<Quote>(buffer, data, data_width, (data: Quote, col: number) => {
+      switch (col) {
+        case 0:
+          return data.price;
+        case 1:
+          return data.size;
+        case 2:
+          return (sum += data.size);
+        case 3:
+          return data.dirty;
+        default:
+          return 0;
+      }
+    });
+  }
+
   // inject small changes in each cycle
   let index = Math.floor(raw_data.length * Math.random());
   raw_data[index] = {
@@ -57,11 +64,11 @@ export function generateDOBData(
   const bid_count = Math.floor(raw_data.length / 2);
 
   return {
-    bids: fill(
+    bids: toBuffer(
       bid_buffer,
       raw_data.slice(0, bid_count).sort((a, b) => b.price - a.price)
     ),
-    asks: fill(
+    asks: toBuffer(
       ask_buffer,
       raw_data.slice(bid_count).sort((a, b) => a.price - b.price)
     ),

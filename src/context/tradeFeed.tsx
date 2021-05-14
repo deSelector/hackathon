@@ -1,3 +1,5 @@
+import { fill } from "./common";
+
 let trade_buffer: ArrayBuffer;
 let raw_data: Trade[];
 
@@ -12,19 +14,6 @@ interface Trade {
 }
 
 export function generateTradeData(data_width: number): Float64Array {
-  ///////
-  function fill(buffer: ArrayBuffer, data: Trade[]): Float64Array {
-    const array = new Float64Array(buffer, 0, data.length * data_width);
-    for (let i = 0, c = 0; i < data.length; i++) {
-      const v = data[i];
-      if (data_width >= 1) array[c++] = v.price;
-      if (data_width >= 2) array[c++] = v.size;
-      if (data_width >= 3) array[c++] = v.time;
-      if (data_width >= 4) array[c++] = v.dirty;
-    }
-    return array;
-  }
-
   if (!raw_data) {
     trade_buffer =
       trade_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
@@ -52,8 +41,23 @@ export function generateTradeData(data_width: number): Float64Array {
     dirty: 1,
   };
 
-  return fill(
+  return fill<Trade>(
     trade_buffer,
-    raw_data.sort((a, b) => b.time - a.time)
+    raw_data.sort((a, b) => b.time - a.time),
+    data_width,
+    (data: Trade, col: number) => {
+      switch (col) {
+        case 0:
+          return data.price;
+        case 1:
+          return data.size;
+        case 2:
+          return data.time;
+        case 3:
+          return data.dirty;
+        default:
+          return 0;
+      }
+    }
   );
 }
