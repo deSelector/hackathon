@@ -1,6 +1,6 @@
 import "./index.scss";
 import { useInitRustGrid } from "./hooks";
-import { GridComponent } from "./components";
+import { DOBComponent } from "./components";
 import { DataProvider } from "./context";
 
 function App() {
@@ -10,10 +10,10 @@ function App() {
     <DataProvider>
       <GridContext.Provider value={grid}>
         <div className="app">
-          <GridComponent id="canvas1" />
-          <GridComponent id="canvas2" />
-          {/* <GridComponent id="canvas3" />
-          <GridComponent id="canvas4" /> */}
+          <DOBComponent id="canvas1" />
+          <DOBComponent id="canvas2" />
+          {/* <DOBComponent id="canvas3" />
+          <DOBComponent id="canvas4" /> */}
         </div>
       </GridContext.Provider>
     </DataProvider>
