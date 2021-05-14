@@ -44,7 +44,7 @@ export function DOBComponent(props: DOBComponentProps) {
       const dob = grid.DOB.new(props.id, size.width, size.height);
       const { bids, asks } = generateDOBData(data_width);
 
-      grid.paint(dob, bids, asks);
+      grid.paint_dob(dob, bids, asks);
     }
   };
 

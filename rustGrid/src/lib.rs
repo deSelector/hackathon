@@ -1,8 +1,10 @@
 use dob::DOB;
+use tape::Tape;
 use wasm_bindgen::prelude::*;
 
 mod ctx2d;
 mod dob;
+mod tape;
 mod utils;
 
 #[macro_use]
@@ -27,6 +29,11 @@ macro_rules! _console_log {
 }
 
 #[wasm_bindgen]
-pub fn paint(dob: DOB, bids: &[f64], asks: &[f64]) {
+pub fn paint_dob(dob: DOB, bids: &[f64], asks: &[f64]) {
     dob.paint(bids, asks);
+}
+
+#[wasm_bindgen]
+pub fn paint_tape(tape: Tape, trades: &[f64]) {
+    tape.paint(trades);
 }

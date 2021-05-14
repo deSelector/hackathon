@@ -5,7 +5,7 @@ import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 import classnames from "classnames";
 // import { useDataContext } from "../context";
-import { generateDOBData } from "../context";
+import { generateTradeData } from "../context";
 
 const frequencies = [0, 50, 100, 250, 500, 750, 1000, 10000];
 
@@ -40,11 +40,11 @@ export function TapeComponent(props: TapeComponentProps) {
 
   const tick = () => {
     if (grid) {
-      const data_width = grid.DOB.get_data_width();
-      const dob = grid.DOB.new(props.id, size.width, size.height);
-      const { bids, asks } = generateDOBData(data_width);
+      const data_width = grid.Tape.get_data_width();
+      const tape = grid.Tape.new(props.id, size.width, size.height);
+      const trades = generateTradeData(data_width);
 
-      grid.paint(dob, bids, asks);
+      grid.paint_tape(tape, trades);
     }
   };
 
@@ -57,7 +57,7 @@ export function TapeComponent(props: TapeComponentProps) {
   useAnimationFrame(freq, tick);
 
   return (
-    <div className={"dob-wrapper"}>
+    <div className={"tape-wrapper"}>
       <div className="frequency-buttons">{buttons()}</div>
       <ResizableCanvas id={props.id} onResize={onResize} />
     </div>
