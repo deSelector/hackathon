@@ -30,20 +30,22 @@ export function generateTradeData(data_width: number): Float64Array {
             time: Date.now(),
           } as Trade)
       );
+    raw_data.sort((a, b) => b.time - a.time);
   }
 
-  // inject small changes in each cycle
-  let index = Math.floor(raw_data.length * Math.random());
-  raw_data[index] = {
+  // insert a new trade on each cycle
+  raw_data.unshift({
     price: Math.random() * 20,
     size: Math.random() * 5,
     time: Date.now(),
     dirty: 1,
-  };
+  });
+
+  raw_data = raw_data.slice(0, MAX_ROW_COUNT);
 
   return fill<Trade>(
     trade_buffer,
-    raw_data.sort((a, b) => b.time - a.time),
+    raw_data,
     data_width,
     (data: Trade, col: number) => {
       switch (col) {
