@@ -11,11 +11,11 @@ const frequencies = [0, 50, 100, 250, 500, 750, 1000, 10000];
 
 const UPDATE_FREQ = 750;
 
-export interface DOBComponentProps {
+export interface TapeComponentProps {
   id: string;
 }
 
-export function DOBComponent(props: DOBComponentProps) {
+export function TapeComponent(props: TapeComponentProps) {
   const grid = useRustGrid();
   // const { counter, setCounter } = useDataContext();
   const [freq, setFreq] = useState<number>(UPDATE_FREQ);
