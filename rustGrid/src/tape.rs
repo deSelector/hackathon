@@ -1,5 +1,6 @@
 use crate::ctx2d::*;
 use crate::utils::*;
+use chrono::NaiveDateTime;
 use enum_iterator::IntoEnumIterator;
 use std::f64;
 use wasm_bindgen::prelude::*;
@@ -181,7 +182,7 @@ impl Tape {
                     let v = self.cell_value(data, r as i32, field).unwrap_or_default();
                     fill_text_aligned(
                         &ctx,
-                        &format_args!("{:.*}", self.cell_precision(field), v).to_string(),
+                        &self.format_value(v, field),
                         x,
                         y,
                         col_width,
@@ -197,6 +198,15 @@ impl Tape {
 }
 
 impl Tape {
+    fn format_value(&self, value: f64, field: Field) -> String {
+        match field {
+            Field::Time => NaiveDateTime::from_timestamp(value as i64 / 1000, 0)
+                .format("%r")
+                .to_string(),
+            _ => format_args!("{:.*}", self.cell_precision(field), value).to_string(),
+        }
+    }
+
     fn cell_value(&self, data: &[f64], row: i32, field: Field) -> Option<f64> {
         match row {
             row if row >= 0 => {
