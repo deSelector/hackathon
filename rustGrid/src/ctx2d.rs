@@ -53,7 +53,7 @@ pub fn set_fill_style(ctx: &CanvasRenderingContext2d, color: &str) {
     ctx.set_fill_style(&color.into());
 }
 
-pub fn clear_rect(
+pub fn fill_rect(
     ctx: &CanvasRenderingContext2d,
     left: f64,
     top: f64,

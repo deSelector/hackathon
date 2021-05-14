@@ -2,6 +2,7 @@ let bid_buffer: ArrayBuffer;
 let ask_buffer: ArrayBuffer;
 
 const MAX_ROW_COUNT = 100;
+const MIN_ROW_COUNT = 30;
 
 export type State = {
   data: any;
@@ -28,11 +29,11 @@ export function generateDOBData(
   ///////
   function fill(buffer: ArrayBuffer, data: DOBSide[]): Float64Array {
     const array = new Float64Array(buffer, 0, data.length * data_width);
-    for (let i = 0, c = 0, cum = 0; i < data.length; i++) {
+    for (let i = 0, c = 0, sum = 0; i < data.length; i++) {
       const v = data[i];
       if (data_width >= 1) array[c++] = v.price;
       if (data_width >= 2) array[c++] = v.size;
-      if (data_width >= 3) array[c++] = cum += v.size;
+      if (data_width >= 3) array[c++] = sum += v.size;
     }
     return array;
   }
@@ -40,7 +41,9 @@ export function generateDOBData(
   bid_buffer = bid_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
   ask_buffer = ask_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
 
-  const prices = Array(Math.floor(Math.random() * (2 * MAX_ROW_COUNT + 1)))
+  const prices = Array(
+    Math.max(MIN_ROW_COUNT * 2, Math.floor(Math.random() * 2 * MAX_ROW_COUNT))
+  )
     .fill(0)
     .map(() => Math.random() * 20.0)
     .sort((a, b) => a - b);
@@ -63,7 +66,7 @@ export function generateDOBData(
       (price) =>
         ({
           price,
-          size: Math.random(),
+          size: Math.random() * 5.0,
         } as DOBSide)
     ),
   };

@@ -31,6 +31,7 @@ pub enum Side {
 pub enum Field {
     Price = 0,
     Size = 1,
+    CumSize = 2,
 }
 
 #[wasm_bindgen]
@@ -88,13 +89,24 @@ impl DOB {
     fn bottom(&self) -> f64 {
         (self.height - MARGIN) as f64 - 0.5
     }
+
+    fn mid(&self) -> f64 {
+        self.left() + ((self.client_width() / 2.0) as i32) as f64
+    }
+
+    fn side_dim(&self, side: Side) -> (f64, f64) {
+        match side {
+            Side::Bid => (self.left(), self.mid()),
+            Side::Ask => (self.mid(), self.right()),
+        }
+    }
 }
 
 impl DOB {
     fn draw_grid(&self) {
         let ctx = ctx(&self.id);
 
-        clear_rect(
+        fill_rect(
             &ctx,
             0.0,
             0.0,
@@ -102,7 +114,8 @@ impl DOB {
             self.height as f64,
             &"#0b0e17",
         );
-        clear_rect(
+
+        fill_rect(
             &ctx,
             self.left(),
             self.top(),
@@ -161,13 +174,15 @@ impl DOB {
             self.client_height(),
         );
 
-        self.paint_side(&ctx, bids, Side::Bid);
-        self.paint_side(&ctx, asks, Side::Ask);
+        self.draw_book_side(&ctx, bids, Side::Bid);
+        self.draw_book_side(&ctx, asks, Side::Ask);
+
+        self.draw_cumulative(&ctx, bids, asks);
 
         clip_end(&ctx);
     }
 
-    fn paint_side(&self, ctx: &CanvasRenderingContext2d, data: &[f64], side: Side) {
+    fn draw_book_side(&self, ctx: &CanvasRenderingContext2d, data: &[f64], side: Side) {
         let row_count = (data.len() / DATA_WIDTH as usize) as u32;
         let col_width = self.cell_width();
         let dx = self.start_x(side);
@@ -184,9 +199,9 @@ impl DOB {
         for r in 0.. {
             let y = self.top() + (r * ROW_HEIGHT) as f64;
             if y < self.bottom() as f64 && r < row_count {
-                for field in Field::into_enum_iter() {
+                for &field in [Field::Price, Field::Size].iter() {
                     let x = dx + self.cell_x(side, field);
-                    let v = self.cell_value(data, r, field);
+                    let v = self.cell_value(data, r as i32, field).unwrap_or_default();
                     fill_text_aligned(
                         &ctx,
                         &format_args!("{:.*}", self.cell_precision(field), v).to_string(),
@@ -202,22 +217,89 @@ impl DOB {
             }
         }
     }
+
+    fn draw_cumulative(&self, ctx: &CanvasRenderingContext2d, bids: &[f64], asks: &[f64]) {
+        let max_cumulative_value = std::cmp::max(
+            self.last_row_value(bids, Field::CumSize) as u32,
+            self.last_row_value(asks, Field::CumSize) as u32,
+        ) as f64;
+
+        if max_cumulative_value > 0.0 {
+            let ratio = self.client_width() / max_cumulative_value / 2.0;
+            self.draw_cumulative_side(ctx, bids, Side::Bid, ratio);
+            self.draw_cumulative_side(ctx, asks, Side::Ask, ratio);
+        }
+    }
+
+    fn draw_cumulative_side(
+        &self,
+        ctx: &CanvasRenderingContext2d,
+        data: &[f64],
+        side: Side,
+        ratio: f64,
+    ) {
+        let row_count = (data.len() / DATA_WIDTH as usize) as u32;
+        if row_count <= 0 {
+            return;
+        }
+
+        let dim = self.side_dim(side);
+
+        ctx.save();
+
+        for r in 0.. {
+            let y = self.top() + (r * ROW_HEIGHT) as f64;
+            if y < self.bottom() as f64 && r < row_count {
+                let len = self
+                    .cell_value(data, r as i32, Field::CumSize)
+                    .unwrap_or_default()
+                    * ratio;
+                let x = match side {
+                    Side::Bid => dim.1 - len,
+                    Side::Ask => dim.0,
+                };
+
+                let color = match side {
+                    Side::Bid => "#0c433899",
+                    Side::Ask => "#ff3b6980",
+                };
+
+                fill_rect(&ctx, x, y, len, ROW_HEIGHT as f64, color);
+            } else {
+                break;
+            }
+        }
+
+        ctx.restore();
+    }
 }
 
 impl DOB {
-    fn cell_value(&self, data: &[f64], row: u32, field: Field) -> f64 {
-        let index = row * DATA_WIDTH + field as u32;
-
-        assert_lt!(
-            index as usize,
-            data.len(),
-            "buffer index {} out of bounds {}",
-            index,
-            data.len()
-        );
-        data[index as usize]
+    fn cell_value(&self, data: &[f64], row: i32, field: Field) -> Option<f64> {
+        match row {
+            row if row >= 0 => {
+                let index = row * DATA_WIDTH as i32 + field as i32;
+                assert_lt!(
+                    index as usize,
+                    data.len(),
+                    "buffer index {} out of bounds {}",
+                    index,
+                    data.len()
+                );
+                return Some(data[index as usize]);
+            }
+            _ => None,
+        }
     }
 
+    fn last_row_value(&self, data: &[f64], field: Field) -> f64 {
+        match data.len() {
+            len if len > 0 => self
+                .cell_value(data, (len as i32 / DATA_WIDTH as i32) - 1, field)
+                .unwrap_or_default(),
+            _ => 0.0,
+        }
+    }
     fn start_x(&self, side: Side) -> f64 {
         self.left()
             + match side {
@@ -231,10 +313,12 @@ impl DOB {
             Side::Bid => match field {
                 Field::Size => 0.0,
                 Field::Price => self.cell_width(),
+                _ => 0.0,
             },
             Side::Ask => match field {
                 Field::Price => 0.0,
                 Field::Size => self.cell_width(),
+                _ => 0.0,
             },
         }
     }
@@ -250,6 +334,7 @@ impl DOB {
         match field {
             Field::Price => 3,
             Field::Size => 5,
+            _ => 0,
         }
     }
 }
