@@ -1,6 +1,6 @@
 let bid_buffer: ArrayBuffer;
 let ask_buffer: ArrayBuffer;
-let raw_data: { bids: Quote[]; asks: Quote[] };
+let raw_data: Quote[];
 
 const MAX_ROW_COUNT = 50;
 const MIN_ROW_COUNT = 30;
@@ -41,58 +41,43 @@ export function generateDOBData(
     return array;
   }
 
-  bid_buffer = bid_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
-  ask_buffer = ask_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
-
   if (!raw_data) {
-    const prices = Array(
+    bid_buffer = bid_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
+    ask_buffer = ask_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
+
+    raw_data = Array(
       Math.max(MIN_ROW_COUNT * 2, Math.floor(Math.random() * 2 * MAX_ROW_COUNT))
     )
       .fill(0)
-      .map(() => Math.random() * 20)
-      .sort((a, b) => a - b);
-
-    const bid_count = Math.floor(prices.length / 2);
-
-    raw_data = {
-      bids: prices
-        .slice(0, bid_count)
-        //.reverse()
-        .map(
-          (price) =>
-            ({
-              price,
-              size: Math.random() * 5.0,
-            } as Quote)
-        ),
-
-      asks: prices.slice(bid_count).map(
-        (price) =>
+      .map(
+        () =>
           ({
-            price,
-            size: Math.random() * 5.0,
+            price: Math.random() * 20,
+            size: Math.random() * 5,
           } as Quote)
-      ),
-    };
+      );
   }
 
-  let index = Math.floor(raw_data.bids.length * Math.random());
-  raw_data.bids[index] = {
+  // inject small changes in each cycle
+  let index = Math.floor(raw_data.length * Math.random());
+  raw_data[index] = {
     price: Math.random() * 20,
     size: Math.random() * 5,
     dirty: 1,
   };
-  index = Math.floor(raw_data.asks.length * Math.random());
-  raw_data.asks[index] = {
-    price: Math.random() * 20,
-    size: Math.random() * 5,
-    dirty: 1,
-  };
-  raw_data.bids.sort((a, b) => b.price - a.price);
-  raw_data.asks.sort((a, b) => b.price - a.price);
+
+  // split data in two halves, one for bids and one for asks
+  raw_data.sort((a, b) => a.price - b.price);
+  const bid_count = Math.floor(raw_data.length / 2);
 
   return {
-    bids: fill(bid_buffer, raw_data.bids),
-    asks: fill(ask_buffer, raw_data.asks),
+    bids: fill(
+      bid_buffer,
+      raw_data.slice(0, bid_count).sort((a, b) => b.price - a.price)
+    ),
+    asks: fill(
+      ask_buffer,
+      raw_data.slice(bid_count).sort((a, b) => a.price - b.price)
+    ),
   };
 }
