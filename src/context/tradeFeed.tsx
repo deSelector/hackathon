@@ -10,10 +10,16 @@ interface Trade {
   price: number;
   size: number;
   time: number;
-  dirty: number;
 }
 
 export function generateTradeData(data_width: number): Float64Array {
+  const item = () =>
+    ({
+      price: Math.random() * 20,
+      size: Math.floor(Math.random() * 500),
+      time: Date.now(),
+    } as Trade);
+
   if (!raw_data) {
     trade_buffer =
       trade_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
@@ -22,24 +28,13 @@ export function generateTradeData(data_width: number): Float64Array {
       Math.max(MIN_ROW_COUNT, Math.floor(Math.random() * MAX_ROW_COUNT))
     )
       .fill(0)
-      .map(
-        () =>
-          ({
-            price: Math.random() * 20,
-            size: Math.random() * 5,
-            time: Date.now(),
-          } as Trade)
-      );
+      .map(item);
+
     raw_data.sort((a, b) => b.time - a.time);
   }
 
   // insert a new trade on each cycle
-  raw_data.unshift({
-    price: Math.random() * 20,
-    size: Math.random() * 5,
-    time: Date.now(),
-    dirty: 1,
-  });
+  raw_data.unshift(item());
 
   raw_data = raw_data.slice(0, MAX_ROW_COUNT);
 
@@ -55,8 +50,6 @@ export function generateTradeData(data_width: number): Float64Array {
           return data.size;
         case 2:
           return data.time;
-        case 3:
-          return data.dirty;
         default:
           return 0;
       }
