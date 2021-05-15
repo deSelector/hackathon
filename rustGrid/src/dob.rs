@@ -20,7 +20,7 @@ const DATA_WIDTH: u32 = 4; // price, size, cumSize, time
 const SIDE_COL_COUNT: u32 = 2;
 const TOTAL_COL_COUNT: u32 = SIDE_COL_COUNT * 2;
 const ROW_HEIGHT: u32 = 30;
-const MARGIN: u32 = 20;
+const MARGIN: u32 = 5;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum Side {

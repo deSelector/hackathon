@@ -21,7 +21,7 @@ macro_rules! _console_log {
 const DATA_WIDTH: u32 = 3; // price, size, time
 const COL_COUNT: u32 = 3;
 const ROW_HEIGHT: u32 = 30;
-const MARGIN: u32 = 20;
+const MARGIN: u32 = 5;
 
 #[derive(PartialEq, Copy, Clone, IntoEnumIterator)]
 pub enum Field {
