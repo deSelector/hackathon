@@ -11,11 +11,11 @@ function App() {
       <GridContext.Provider value={grid}>
         <div className="app">
           <div id="left-panel">
-            <SolanaComponent id="canvas3" />
+            <SolanaComponent />
           </div>
           <div id="right-panel">
-            <DOBComponent id="canvas1" />
-            <TapeComponent id="canvas2" />
+            <DOBComponent />
+            <TapeComponent />
           </div>
         </div>
       </GridContext.Provider>

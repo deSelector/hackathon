@@ -12,11 +12,12 @@ const frequencies = [0, 50, 100, 250, 500, 750, 1000, 10000];
 const UPDATE_FREQ = 500;
 
 export interface TapeComponentProps {
-  id: string;
+  id?: string;
 }
 
 export function TapeComponent(props: TapeComponentProps) {
   const grid = useRustWasm();
+  const [id] = useState<string>(props.id ?? "tape-canvas");
   // const { counter, setCounter } = useDataContext();
   const [freq, setFreq] = useState<number>(UPDATE_FREQ);
   const [size, setSize] = useState<{ width?: number; height?: number }>({
@@ -41,7 +42,7 @@ export function TapeComponent(props: TapeComponentProps) {
   const tick = () => {
     if (grid) {
       const data_width = grid.Tape.get_data_width();
-      const tape = grid.Tape.new(props.id, size.width, size.height);
+      const tape = grid.Tape.new(id, size.width, size.height);
       const trades = generateTradeData(data_width);
 
       grid.paint_tape(tape, trades);
@@ -59,7 +60,7 @@ export function TapeComponent(props: TapeComponentProps) {
   return (
     <div className={"tape-wrapper"}>
       <div className="frequency-buttons">{buttons()}</div>
-      <ResizableCanvas id={props.id} onResize={onResize} />
+      <ResizableCanvas id={id} onResize={onResize} />
     </div>
   );
 }
