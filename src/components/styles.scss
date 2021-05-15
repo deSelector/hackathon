@@ -10,11 +10,13 @@
         flex-direction: row;
         margin: 10px 10px 0px 10px;
         align-self: center;
+        flex-wrap: wrap;
         button {
             cursor: pointer;
             margin: 0px 2px;
             &.selected {
                 background: #ff3b69;
+                color: white;
             }
         }
     }
