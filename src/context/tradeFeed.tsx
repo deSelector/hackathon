@@ -15,7 +15,7 @@ interface Trade {
 export function generateTradeData(data_width: number): Float64Array {
   const item = () =>
     ({
-      price: Math.random() * 20,
+      price: +(Math.random() * 5).toFixed(3),
       size: Math.floor(Math.random() * 500),
       time: Date.now(),
     } as Trade);

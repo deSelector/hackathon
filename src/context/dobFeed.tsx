@@ -4,8 +4,8 @@ let bid_buffer: ArrayBuffer;
 let ask_buffer: ArrayBuffer;
 let raw_data: Quote[];
 
-const MAX_ROW_COUNT = 100;
-const MIN_ROW_COUNT = 50;
+const MAX_ROW_COUNT = 50;
+const MIN_ROW_COUNT = 30;
 
 interface Quote {
   price: number;
@@ -13,9 +13,10 @@ interface Quote {
   time: number;
 }
 
-export function generateDOBData(
-  data_width: number
-): { bids: Float64Array; asks: Float64Array } {
+export function generateDOBData(data_width: number): {
+  bids: Float64Array;
+  asks: Float64Array;
+} {
   const item = () =>
     ({
       price: Math.random() * 20,
