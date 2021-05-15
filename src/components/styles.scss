@@ -31,19 +31,16 @@
 #left-panel,
 #right-panel {
     display: flex;
+    flex: 1;
     min-width: 0px;
     min-height: 0px;
     padding: 5px;
 }
 
-#left-panel {
-    flex: 0.6;
-}
-
 #right-panel {
-    flex: 0.4;
     flex-direction: column;
     justify-content: space-evenly;
+    max-width: 450px;
 }
 
 .solana-wrapper {
