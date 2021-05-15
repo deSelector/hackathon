@@ -11,7 +11,7 @@ function App() {
       <GridContext.Provider value={grid}>
         <div className="app">
           <div id="left-panel">
-            <SolanaComponent />
+            <SolanaComponent id="canvas3" />
           </div>
           <div id="right-panel">
             <DOBComponent id="canvas1" />

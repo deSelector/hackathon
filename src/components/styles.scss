@@ -1,5 +1,6 @@
 .dob-wrapper,
-.tape-wrapper {
+.tape-wrapper,
+.solana-wrapper {
     min-width: 0px;
     min-height: 0px;
     display: flex;
@@ -34,13 +35,20 @@
     flex: 1;
     min-width: 0px;
     min-height: 0px;
-    padding: 5px;
+    padding-bottom: 10px;
+}
+
+#left-panel {
+    padding-left: 10px;
+    padding-right: 5px;
 }
 
 #right-panel {
     flex-direction: column;
     justify-content: space-evenly;
     max-width: 450px;
+    padding-left: 5px;
+    padding-right: 10px;
 }
 
 .solana-wrapper {
