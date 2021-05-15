@@ -1,6 +1,7 @@
 .dob-wrapper,
 .tape-wrapper {
-    min-width: 100px;
+    min-width: 0px;
+    min-height: 0px;
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -23,4 +24,27 @@
         display: flex;
         flex: 1;
     }
+}
+
+#left-panel,
+#right-panel {
+    display: flex;
+    flex: 1;
+    min-width: 0px;
+    min-height: 0px;
+}
+
+#right-panel {
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.solana-wrapper {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
+    min-width: 0px;
+    min-height: 0px;
 }
