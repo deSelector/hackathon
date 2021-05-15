@@ -1,4 +1,4 @@
-import { fill } from "./common";
+import { fill } from "../context";
 
 let trade_buffer: ArrayBuffer;
 let raw_data: Trade[];

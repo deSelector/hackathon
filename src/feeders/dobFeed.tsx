@@ -1,4 +1,4 @@
-import { fill } from "./common";
+import { fill } from "../context";
 
 let bid_buffer: ArrayBuffer;
 let ask_buffer: ArrayBuffer;
