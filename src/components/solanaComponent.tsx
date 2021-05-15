@@ -4,7 +4,7 @@ import { useRustWasm } from "../hooks";
 import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 
-import { generateBlockData } from "../context";
+import { generateBlockData } from "./../feeders";
 
 const UPDATE_FREQ = 2000;
 

@@ -5,7 +5,7 @@ import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 import classnames from "classnames";
 // import { useDataContext } from "../context";
-import { generateDOBData } from "../context";
+import { generateDOBData } from "../feeders";
 
 const frequencies = [0, 50, 100, 250, 500, 750, 1000, 10000];
 
