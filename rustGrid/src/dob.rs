@@ -4,7 +4,6 @@ use crate::utils::*;
 use enum_iterator::IntoEnumIterator;
 use std::f64;
 use wasm_bindgen::prelude::*;
-use web_sys::CanvasRenderingContext2d;
 
 #[wasm_bindgen]
 extern "C" {
@@ -52,174 +51,59 @@ impl DOB {
     pub fn get_data_width() -> u32 {
         DATA_WIDTH
     }
-    pub fn width(&self) -> u32 {
-        self.width
-    }
-
-    pub fn height(&self) -> u32 {
-        self.height
-    }
-
-    pub fn set_width(&mut self, width: u32) {
-        self.width = width;
-    }
-
-    pub fn set_height(&mut self, height: u32) {
-        self.height = height;
-    }
 }
 
 impl DOB {
-    fn cell_width(&self) -> f64 {
-        self.client_width() / TOTAL_COL_COUNT as f64
-    }
-    fn client_width(&self) -> f64 {
-        (self.width - 2 * MARGIN) as f64
-    }
-    fn client_height(&self) -> f64 {
-        (self.height - 2 * MARGIN) as f64
-    }
-    fn left(&self) -> f64 {
-        MARGIN as f64 + 0.5
-    }
-    fn top(&self) -> f64 {
-        MARGIN as f64 + 0.5
-    }
-    fn right(&self) -> f64 {
-        (self.width - MARGIN) as f64 - 0.5
-    }
-    fn bottom(&self) -> f64 {
-        (self.height - MARGIN) as f64 - 0.5
-    }
-
-    fn mid(&self) -> f64 {
-        self.left() + ((self.client_width() / 2.0) as i32) as f64
-    }
-
-    fn side_dim(&self, side: Side) -> (f64, f64) {
-        match side {
-            Side::Bid => (self.left(), self.mid()),
-            Side::Ask => (self.mid(), self.right()),
-        }
-    }
-}
-
-impl DOB {
-    fn draw_grid(&self) {
-        let ctx = &ctx(&self.id);
-
-        fill_rect(
-            ctx,
-            0.0,
-            0.0,
-            self.width as f64,
-            self.height as f64,
-            &"#0b0e17",
-        );
-
-        fill_rect(
-            ctx,
-            self.left(),
-            self.top(),
-            self.client_width(),
-            self.client_height(),
-            &"#101722",
-        );
-
-        ctx.begin_path();
-        ctx.set_stroke_style(&"#232832".into());
-
-        let col_width = self.cell_width();
-
-        // Vertical lines.
-        {
-            for i in 0..TOTAL_COL_COUNT + 1 {
-                let x = self.left() + (i as f64 * col_width).floor();
-                ctx.move_to(x, self.top());
-                ctx.line_to(x, self.bottom());
-                vertical_line(ctx, self.top(), self.bottom(), x);
-            }
-        }
-
-        {
-            // Horizontal lines.
-            let mut j = 0;
-            loop {
-                let y = self.top() + (j * ROW_HEIGHT) as f64;
-                if y < self.bottom() {
-                    horizontal_line(ctx, self.left(), self.right(), y);
-                    j += 1;
-                } else {
-                    break;
-                }
-            }
-            horizontal_line(ctx, self.left(), self.right(), self.bottom());
-        }
-
-        ctx.stroke();
-    }
-
     pub fn paint(&self, bids: &[f64], asks: &[f64]) {
         let ctx = &ctx(&self.id);
-
-        self.draw_grid();
-
-        // red: #ff3b69
-        set_fill_style(ctx, "#03c67a");
-        set_text_baseline(ctx, "middle");
-
-        clip_begin(
+        let grid = Grid::new(
             ctx,
-            self.left(),
-            self.top(),
-            self.client_width(),
-            self.client_height(),
+            self.width,
+            self.height,
+            ROW_HEIGHT,
+            TOTAL_COL_COUNT,
+            DATA_WIDTH,
+            MARGIN,
         );
 
-        self.draw_book_side(ctx, bids, Side::Bid);
-        self.draw_book_side(ctx, asks, Side::Ask);
-        self.draw_cumulative(ctx, bids, asks);
+        grid.assert_data_source(bids);
+        grid.assert_data_source(asks);
+        grid.draw_grid();
 
-        clip_end(ctx);
+        grid.clip_begin();
+        self.draw_book_side(&grid, bids, Side::Bid);
+        self.draw_book_side(&grid, asks, Side::Ask);
+        self.draw_cumulative(&grid, bids, asks);
+        grid.clip_end();
     }
 
-    fn draw_book_side(&self, ctx: &CanvasRenderingContext2d, data: &[f64], side: Side) {
+    fn draw_book_side(&self, grid: &Grid, data: &[f64], side: Side) {
         let row_count = (data.len() / DATA_WIDTH as usize) as u32;
-        let col_width = self.cell_width();
-        let dx = self.start_x(side);
+        let col_width = grid.cell_width();
+        let dx = self.start_x(grid, side);
         let align = self.cell_align(side);
 
-        assert_eq!(
-            data.len() as f64 % DATA_WIDTH as f64,
-            0.0,
-            "buffer size {} not divisible by {}",
-            data.len(),
-            DATA_WIDTH
-        );
-
         for r in 0.. {
-            let y = self.top() + (r * ROW_HEIGHT) as f64;
-            if y < self.bottom() as f64 && r < row_count {
+            let y = grid.top() + (r * ROW_HEIGHT) as f64;
+            if y < grid.bottom() as f64 && r < row_count {
                 for &field in [Field::Price, Field::Size].iter() {
-                    let x = dx + self.cell_x(side, field);
-                    let v = self.cell_value(data, r as i32, field).unwrap_or_default();
+                    let x = dx + self.cell_x(grid, side, field);
+                    let v = grid
+                        .cell_value(data, r as i32, field as u32)
+                        .unwrap_or_default();
 
-                    Grid::draw_highlight(
-                        ctx,
+                    grid.draw_highlight(
                         x,
                         y,
                         col_width,
-                        ROW_HEIGHT as f64,
-                        self.cell_value(data, r as i32, Field::Time)
+                        grid.cell_value(data, r as i32, Field::Time as u32)
                             .unwrap_or_default(),
                     );
-                    fill_text_aligned(
-                        ctx,
+                    grid.fill_text_aligned(
                         &format_args!("{:.*}", self.cell_precision(field), v).to_string(),
                         x,
                         y,
                         col_width,
-                        ROW_HEIGHT as f64,
                         align,
                     );
                 }
@@ -229,40 +113,34 @@ impl DOB {
         }
     }
 
-    fn draw_cumulative(&self, ctx: &CanvasRenderingContext2d, bids: &[f64], asks: &[f64]) {
+    fn draw_cumulative(&self, grid: &Grid, bids: &[f64], asks: &[f64]) {
         let max_cumulative_value = std::cmp::max(
-            self.last_row_value(bids, Field::CumSize) as u32,
-            self.last_row_value(asks, Field::CumSize) as u32,
+            self.last_row_value(grid, bids, Field::CumSize) as u32,
+            self.last_row_value(grid, asks, Field::CumSize) as u32,
         ) as f64;
 
         if max_cumulative_value > 0.0 {
-            let ratio = self.client_width() / max_cumulative_value / 2.0;
-            self.draw_cumulative_side(ctx, bids, Side::Bid, ratio);
-            self.draw_cumulative_side(ctx, asks, Side::Ask, ratio);
+            let ratio = grid.client_width() / max_cumulative_value / 2.0;
+            self.draw_cumulative_side(grid, bids, Side::Bid, ratio);
+            self.draw_cumulative_side(grid, asks, Side::Ask, ratio);
         }
     }
 
-    fn draw_cumulative_side(
-        &self,
-        ctx: &CanvasRenderingContext2d,
-        data: &[f64],
-        side: Side,
-        ratio: f64,
-    ) {
+    fn draw_cumulative_side(&self, grid: &Grid, data: &[f64], side: Side, ratio: f64) {
         let row_count = (data.len() / DATA_WIDTH as usize) as u32;
         if row_count <= 0 {
             return;
         }
 
-        let dim = self.side_dim(side);
-
+        let dim = self.side_dim(grid, side);
+        let ctx = grid.get_ctx();
         ctx.save();
 
         for r in 0.. {
-            let y = self.top() + (r * ROW_HEIGHT) as f64;
-            if y < self.bottom() as f64 && r < row_count {
-                let len = self
-                    .cell_value(data, r as i32, Field::CumSize)
+            let y = grid.top() + (r * ROW_HEIGHT) as f64;
+            if y < grid.bottom() as f64 && r < row_count {
+                let len = grid
+                    .cell_value(data, r as i32, Field::CumSize as u32)
                     .unwrap_or_default()
                     * ratio;
                 let x = match side {
@@ -286,49 +164,39 @@ impl DOB {
 }
 
 impl DOB {
-    fn cell_value(&self, data: &[f64], row: i32, field: Field) -> Option<f64> {
-        match row {
-            row if row >= 0 => {
-                let index = row * DATA_WIDTH as i32 + field as i32;
-                assert_lt!(
-                    index as usize,
-                    data.len(),
-                    "buffer index {} out of bounds {}",
-                    index,
-                    data.len()
-                );
-                return Some(data[index as usize]);
-            }
-            _ => None,
+    fn side_dim(&self, grid: &Grid, side: Side) -> (f64, f64) {
+        match side {
+            Side::Bid => (grid.left(), grid.mid()),
+            Side::Ask => (grid.mid(), grid.right()),
         }
     }
 
-    fn last_row_value(&self, data: &[f64], field: Field) -> f64 {
+    fn last_row_value(&self, grid: &Grid, data: &[f64], field: Field) -> f64 {
         match data.len() {
-            len if len > 0 => self
-                .cell_value(data, (len as i32 / DATA_WIDTH as i32) - 1, field)
+            len if len > 0 => grid
+                .cell_value(data, (len as i32 / DATA_WIDTH as i32) - 1, field as u32)
                 .unwrap_or_default(),
             _ => 0.0,
         }
     }
-    fn start_x(&self, side: Side) -> f64 {
-        self.left()
+    fn start_x(&self, grid: &Grid, side: Side) -> f64 {
+        grid.left()
             + match side {
                 Side::Bid => 0.0,
-                Side::Ask => self.cell_width() * SIDE_COL_COUNT as f64,
+                Side::Ask => grid.cell_width() * SIDE_COL_COUNT as f64,
             }
     }
 
-    fn cell_x(&self, side: Side, field: Field) -> f64 {
+    fn cell_x(&self, grid: &Grid, side: Side, field: Field) -> f64 {
         match side {
             Side::Bid => match field {
                 Field::Size => 0.0,
-                Field::Price => self.cell_width(),
+                Field::Price => grid.cell_width(),
                 _ => 0.0,
             },
             Side::Ask => match field {
                 Field::Price => 0.0,
-                Field::Size => self.cell_width(),
+                Field::Size => grid.cell_width(),
                 _ => 0.0,
             },
         }

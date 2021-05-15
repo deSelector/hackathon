@@ -1,12 +1,10 @@
-use crate::ctx2d::*;
-use crate::grid::*;
+use crate::grid::Grid;
 use crate::utils::*;
 use chrono::prelude::*;
 use chrono::Local;
 use enum_iterator::IntoEnumIterator;
 use std::f64;
 use wasm_bindgen::prelude::*;
-use web_sys::CanvasRenderingContext2d;
 
 #[wasm_bindgen]
 extern "C" {
@@ -46,160 +44,48 @@ impl Tape {
     pub fn get_data_width() -> u32 {
         DATA_WIDTH
     }
-    pub fn width(&self) -> u32 {
-        self.width
-    }
-
-    pub fn height(&self) -> u32 {
-        self.height
-    }
-
-    pub fn set_width(&mut self, width: u32) {
-        self.width = width;
-    }
-
-    pub fn set_height(&mut self, height: u32) {
-        self.height = height;
-    }
 }
 
 impl Tape {
-    fn cell_width(&self) -> f64 {
-        self.client_width() / COL_COUNT as f64
-    }
-    fn client_width(&self) -> f64 {
-        (self.width - 2 * MARGIN) as f64
-    }
-    fn client_height(&self) -> f64 {
-        (self.height - 2 * MARGIN) as f64
-    }
-    fn left(&self) -> f64 {
-        MARGIN as f64 + 0.5
-    }
-    fn top(&self) -> f64 {
-        MARGIN as f64 + 0.5
-    }
-    fn right(&self) -> f64 {
-        (self.width - MARGIN) as f64 - 0.5
-    }
-    fn bottom(&self) -> f64 {
-        (self.height - MARGIN) as f64 - 0.5
-    }
-}
-
-impl Tape {
-    fn draw_grid(&self) {
-        let ctx = &ctx(&self.id);
-
-        fill_rect(
-            ctx,
-            0.0,
-            0.0,
-            self.width as f64,
-            self.height as f64,
-            &"#0b0e17",
-        );
-
-        fill_rect(
-            ctx,
-            self.left(),
-            self.top(),
-            self.client_width(),
-            self.client_height(),
-            &"#101722",
-        );
-
-        ctx.begin_path();
-        ctx.set_stroke_style(&"#232832".into());
-
-        let col_width = self.cell_width();
-
-        // Vertical lines.
-        {
-            for i in 0..COL_COUNT + 1 {
-                let x = self.left() + (i as f64 * col_width).floor();
-                ctx.move_to(x, self.top());
-                ctx.line_to(x, self.bottom());
-                vertical_line(ctx, self.top(), self.bottom(), x);
-            }
-        }
-
-        {
-            // Horizontal lines.
-            let mut j = 0;
-            loop {
-                let y = self.top() + (j * ROW_HEIGHT) as f64;
-                if y < self.bottom() {
-                    horizontal_line(ctx, self.left(), self.right(), y);
-                    j += 1;
-                } else {
-                    break;
-                }
-            }
-            horizontal_line(ctx, self.left(), self.right(), self.bottom());
-        }
-
-        ctx.stroke();
-    }
-
     pub fn paint(&self, trades: &[f64]) {
         let ctx = &ctx(&self.id);
-
-        self.draw_grid();
-
-        // red: #ff3b69
-        set_fill_style(ctx, "#03c67a");
-        set_text_baseline(ctx, "middle");
-
-        clip_begin(
+        let grid = Grid::new(
             ctx,
-            self.left(),
-            self.top(),
-            self.client_width(),
-            self.client_height(),
+            self.width,
+            self.height,
+            ROW_HEIGHT,
+            COL_COUNT,
+            DATA_WIDTH,
+            MARGIN,
         );
+        grid.assert_data_source(trades);
+        grid.draw_grid();
 
-        self.draw_tape(ctx, trades);
-
-        clip_end(ctx);
+        grid.clip_begin();
+        self.draw_tape(&grid, trades);
+        grid.clip_end();
     }
 
-    fn draw_tape(&self, ctx: &CanvasRenderingContext2d, data: &[f64]) {
+    fn draw_tape(&self, grid: &Grid, data: &[f64]) {
         let row_count = (data.len() / DATA_WIDTH as usize) as u32;
-        let col_width = self.cell_width();
-
-        assert_eq!(
-            data.len() as f64 % DATA_WIDTH as f64,
-            0.0,
-            "buffer size {} not divisible by {}",
-            data.len(),
-            DATA_WIDTH
-        );
+        let col_width = grid.cell_width();
 
         for r in 0.. {
-            let y = self.top() + (r * ROW_HEIGHT) as f64;
-            if y < self.bottom() as f64 && r < row_count {
+            let y = grid.top() + (r * ROW_HEIGHT) as f64;
+            if y < grid.bottom() as f64 && r < row_count {
                 for &field in [Field::Price, Field::Size, Field::Time].iter() {
-                    let x = self.left() + self.cell_x(field);
-                    let v = self.cell_value(data, r as i32, field).unwrap_or_default();
-                    Grid::draw_highlight(
-                        ctx,
+                    let x = grid.left() + self.cell_x(grid, field);
+                    let v = grid
+                        .cell_value(data, r as i32, field as u32)
+                        .unwrap_or_default();
+                    grid.draw_highlight(
                         x,
                         y,
                         col_width,
-                        ROW_HEIGHT as f64,
-                        self.cell_value(data, r as i32, Field::Time)
+                        grid.cell_value(data, r as i32, Field::Time as u32)
                             .unwrap_or_default(),
                     );
-                    fill_text_aligned(
-                        ctx,
-                        &self.format_value(v, field),
-                        x,
-                        y,
-                        col_width,
-                        ROW_HEIGHT as f64,
-                        "right",
-                    );
+                    grid.fill_text_aligned(&self.format_value(v, field), x, y, col_width, "right");
                 }
             } else {
                 break;
@@ -219,28 +105,11 @@ impl Tape {
         }
     }
 
-    fn cell_value(&self, data: &[f64], row: i32, field: Field) -> Option<f64> {
-        match row {
-            row if row >= 0 => {
-                let index = row * DATA_WIDTH as i32 + field as i32;
-                assert_lt!(
-                    index as usize,
-                    data.len(),
-                    "buffer index {} out of bounds {}",
-                    index,
-                    data.len()
-                );
-                return Some(data[index as usize]);
-            }
-            _ => None,
-        }
-    }
-
-    fn cell_x(&self, field: Field) -> f64 {
+    fn cell_x(&self, grid: &Grid, field: Field) -> f64 {
         match field {
             Field::Price => 0.0,
-            Field::Size => self.cell_width(),
-            Field::Time => self.cell_width() * 2.0,
+            Field::Size => grid.cell_width(),
+            Field::Time => grid.cell_width() * 2.0,
         }
     }
 
