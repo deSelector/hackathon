@@ -1,10 +1,10 @@
 import "./index.scss";
-import { useInitRustGrid } from "./hooks";
+import { useInitRustWasm } from "./hooks";
 import { DOBComponent, TapeComponent, SolanaComponent } from "./components";
 import { DataProvider } from "./context";
 
 function App() {
-  const [GridContext, grid] = useInitRustGrid();
+  const [GridContext, grid] = useInitRustWasm();
 
   return (
     <DataProvider>

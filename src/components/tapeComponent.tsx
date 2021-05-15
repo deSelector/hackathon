@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAnimationFrame } from "../hooks/useAnimationFrame";
-import { useRustGrid } from "../hooks";
+import { useRustWasm } from "../hooks";
 import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 import classnames from "classnames";
@@ -16,7 +16,7 @@ export interface TapeComponentProps {
 }
 
 export function TapeComponent(props: TapeComponentProps) {
-  const grid = useRustGrid();
+  const grid = useRustWasm();
   // const { counter, setCounter } = useDataContext();
   const [freq, setFreq] = useState<number>(UPDATE_FREQ);
   const [size, setSize] = useState<{ width?: number; height?: number }>({

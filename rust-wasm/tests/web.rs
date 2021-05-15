@@ -5,8 +5,8 @@
 
 #![cfg(target_arch = "wasm32")]
 
-extern crate rust_grid_demo;
-use rust_grid_demo::Universe;
+extern crate rust_wasm_demo;
+use rust_wasm_demo::Universe;
 
 extern crate wasm_bindgen_test;
 use wasm_bindgen_test::*;

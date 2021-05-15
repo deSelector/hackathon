@@ -2,13 +2,13 @@ import { createContext, useState, useContext, useEffect } from 'react';
 
 const context = createContext<any>(null);
 
-export const useInitRustGrid = () => {
+export const useInitRustWasm = () => {
     const [grid, setGrid] = useState<any>(null);
 
     useEffect(() => {
         (async () => {
             try {
-                const wasm = await import('rust-grid');
+                const wasm = await import('rust-wasm');
                 setGrid(wasm);
             } catch (e) {
                 console.error(e);
@@ -20,4 +20,4 @@ export const useInitRustGrid = () => {
     return [context, grid];
 };
 
-export const useRustGrid = () => useContext(context);
+export const useRustWasm = () => useContext(context);

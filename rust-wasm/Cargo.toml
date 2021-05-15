@@ -1,5 +1,5 @@
 [package]
-name = "rust-grid"
+name = "rust-wasm"
 version = "0.1.0"
 authors = ["deSelector <deselectors@gmail.com>"]
 edition = "2018"
