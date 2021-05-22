@@ -4,7 +4,7 @@ use web_sys::CanvasRenderingContext2d;
 
 const HIGHLIGHT_DURATION: i64 = 250;
 
-pub struct Grid<'a> {
+pub struct GridCore<'a> {
     width: u32,
     height: u32,
     row_height: u32,
@@ -14,7 +14,7 @@ pub struct Grid<'a> {
     data_width: u32,
 }
 
-impl<'a> Grid<'a> {
+impl<'a> GridCore<'a> {
     pub fn new(
         ctx: &'a CanvasRenderingContext2d,
         width: u32,
@@ -23,8 +23,8 @@ impl<'a> Grid<'a> {
         col_count: u32,
         data_width: u32,
         margin: u32,
-    ) -> Grid {
-        Grid {
+    ) -> GridCore {
+        GridCore {
             ctx: Some(ctx),
             width,
             height,
@@ -135,7 +135,7 @@ impl<'a> Grid<'a> {
     }
 }
 
-impl<'a> Grid<'a> {
+impl<'a> GridCore<'a> {
     pub fn get_ctx(&self) -> &CanvasRenderingContext2d {
         self.ctx.unwrap()
     }

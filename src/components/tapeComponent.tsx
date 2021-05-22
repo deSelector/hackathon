@@ -41,11 +41,10 @@ export function TapeComponent(props: TapeComponentProps) {
 
   const tick = () => {
     if (wasm) {
-      const data_width = wasm.Tape.get_data_width();
-      const tape = wasm.Tape.new(id, size.width, size.height);
-      const trades = generateTradeData(data_width);
-
-      tape.paint(trades);
+      const data_width = wasm.Grid.get_data_width();
+      const grid = wasm.Grid.new(id, size.width, size.height);
+      const data = generateTradeData(data_width);
+      grid.paint(data);
     }
   };
 

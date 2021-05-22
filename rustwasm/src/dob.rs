@@ -1,4 +1,4 @@
-use crate::grid::control::*;
+use crate::grid::core::*;
 use crate::grid::ctx2d::*;
 
 use crate::utils::*;
@@ -56,7 +56,7 @@ impl DOB {
 
     pub fn paint(&self, bids: &[f64], asks: &[f64]) {
         let ctx = &ctx(&self.id);
-        let grid = Grid::new(
+        let grid = GridCore::new(
             ctx,
             self.width,
             self.height,
@@ -79,7 +79,7 @@ impl DOB {
 }
 
 impl DOB {
-    fn draw_book_side(&self, grid: &Grid, data: &[f64], side: Side) {
+    fn draw_book_side(&self, grid: &GridCore, data: &[f64], side: Side) {
         let row_count = (data.len() / DATA_WIDTH as usize) as u32;
         let col_width = grid.cell_width();
         let dx = self.start_x(grid, side);
@@ -115,7 +115,7 @@ impl DOB {
         }
     }
 
-    fn draw_cumulative(&self, grid: &Grid, bids: &[f64], asks: &[f64]) {
+    fn draw_cumulative(&self, grid: &GridCore, bids: &[f64], asks: &[f64]) {
         let max_cumulative_value = std::cmp::max(
             self.last_row_value(grid, bids, Field::CumSize) as u32,
             self.last_row_value(grid, asks, Field::CumSize) as u32,
@@ -128,7 +128,7 @@ impl DOB {
         }
     }
 
-    fn draw_cumulative_side(&self, grid: &Grid, data: &[f64], side: Side, ratio: f64) {
+    fn draw_cumulative_side(&self, grid: &GridCore, data: &[f64], side: Side, ratio: f64) {
         let row_count = (data.len() / DATA_WIDTH as usize) as u32;
         if row_count <= 0 {
             return;
@@ -166,14 +166,14 @@ impl DOB {
 }
 
 impl DOB {
-    fn side_dim(&self, grid: &Grid, side: Side) -> (f64, f64) {
+    fn side_dim(&self, grid: &GridCore, side: Side) -> (f64, f64) {
         match side {
             Side::Bid => (grid.left(), grid.mid()),
             Side::Ask => (grid.mid(), grid.right()),
         }
     }
 
-    fn last_row_value(&self, grid: &Grid, data: &[f64], field: Field) -> f64 {
+    fn last_row_value(&self, grid: &GridCore, data: &[f64], field: Field) -> f64 {
         match data.len() {
             len if len > 0 => grid
                 .cell_value(data, (len as i32 / DATA_WIDTH as i32) - 1, field as u32)
@@ -181,7 +181,7 @@ impl DOB {
             _ => 0.0,
         }
     }
-    fn start_x(&self, grid: &Grid, side: Side) -> f64 {
+    fn start_x(&self, grid: &GridCore, side: Side) -> f64 {
         grid.left()
             + match side {
                 Side::Bid => 0.0,
@@ -189,7 +189,7 @@ impl DOB {
             }
     }
 
-    fn cell_x(&self, grid: &Grid, side: Side, field: Field) -> f64 {
+    fn cell_x(&self, grid: &GridCore, side: Side, field: Field) -> f64 {
         match side {
             Side::Bid => match field {
                 Field::Size => 0.0,

@@ -1,4 +1,4 @@
-use crate::grid::control::*;
+use crate::grid::core::*;
 use crate::utils::*;
 use chrono::prelude::*;
 use chrono::Local;
@@ -29,17 +29,17 @@ pub enum Field {
 }
 
 #[wasm_bindgen]
-pub struct Tape {
+pub struct Grid {
     id: String,
     width: u32,
     height: u32,
 }
 
 #[wasm_bindgen]
-impl Tape {
-    pub fn new(id: String, width: u32, height: u32) -> Tape {
+impl Grid {
+    pub fn new(id: String, width: u32, height: u32) -> Grid {
         set_panic_hook();
-        Tape { id, width, height }
+        Grid { id, width, height }
     }
 
     pub fn get_data_width() -> u32 {
@@ -48,7 +48,7 @@ impl Tape {
 
     pub fn paint(&self, trades: &[f64]) {
         let ctx = &ctx(&self.id);
-        let grid = Grid::new(
+        let grid = GridCore::new(
             ctx,
             self.width,
             self.height,
@@ -61,13 +61,13 @@ impl Tape {
         grid.draw_gridlines();
 
         grid.clip_begin();
-        self.draw_tape(&grid, trades);
+        self.render(&grid, trades);
         grid.clip_end();
     }
 }
 
-impl Tape {
-    fn draw_tape(&self, grid: &Grid, data: &[f64]) {
+impl Grid {
+    fn render(&self, grid: &GridCore, data: &[f64]) {
         let row_count = (data.len() / DATA_WIDTH as usize) as u32;
         let col_width = grid.cell_width();
 
@@ -95,7 +95,7 @@ impl Tape {
     }
 }
 
-impl Tape {
+impl Grid {
     fn format_value(&self, value: f64, field: Field) -> String {
         match field {
             Field::Time => Local
@@ -106,7 +106,7 @@ impl Tape {
         }
     }
 
-    fn cell_x(&self, grid: &Grid, field: Field) -> f64 {
+    fn cell_x(&self, grid: &GridCore, field: Field) -> f64 {
         match field {
             Field::Price => 0.0,
             Field::Size => grid.cell_width(),

@@ -23,10 +23,10 @@ export function SolanaComponent(props: SolanaComponentProps) {
 
   const tick = async () => {
     if (wasm) {
-      const data_width = wasm.Tape.get_data_width();
-      const tape = wasm.Tape.new(id, size.width, size.height);
-      const trades = await generateBlockData(data_width);
-      tape.paint(trades);
+      const data_width = wasm.Grid.get_data_width();
+      const grid = wasm.Grid.new(id, size.width, size.height);
+      const data = await generateBlockData(data_width);
+      grid.paint(data);
     }
   };
 
