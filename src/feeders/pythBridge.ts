@@ -29,23 +29,24 @@ const setPrice = (symbol: string, buffer: Buffer) => {
 export async function init(): Promise<any> {
     conn = conn ?? new Connection(URL, "confirmed");
     if (!pending) {
+        let start = performance.now();
         console.log(`BRIDGE: initializing`);
         try {
             pending = conn.getAccountInfo(ORACLE_MAPPING_PUBLIC_KEY);
             const mapping = await pending;
             if (mapping) {
-                console.log(`BRIDGE: loaded account info`);
+                console.log(`BRIDGE: loaded account info, ${(performance.now() - start) | 0} msec`);
                 const { productAccountKeys } = parseMappingData(mapping.data);
                 const productAccts = await getAccounts(
                     conn,
                     productAccountKeys.map((a) => a.toBase58()),
                     "confirmed"
                 );
-                console.log(`BRIDGE: loaded ${productAccts.keys.length} accounts`);
+                console.log(`BRIDGE: loaded ${productAccts.keys.length} accounts, ${(performance.now() - start) | 0} msec`);
                 const products = productAccts.values.map((a) =>
                     parseProductData(Buffer.from(a.data))
                 );
-                console.log(`BRIDGE: parsed ${products.length} products`);
+                console.log(`BRIDGE: parsed ${products.length} products, ${(performance.now() - start) | 0} msec`);
                 const priceAccts = await getAccounts(
                     conn,
                     products.map((p) => p.priceAccountKey.toBase58()),
@@ -58,7 +59,7 @@ export async function init(): Promise<any> {
                         setPrice(symbol, acc.data)
                     );
                 });
-                console.log(`BRIDGE: subscribed to ${priceAccts.keys.length} instruments`);
+                console.log(`BRIDGE: subscribed to ${priceAccts.keys.length} instruments, ${(performance.now() - start) | 0} msec`);
             }
         } catch (error) {
             console.error(error);
