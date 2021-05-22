@@ -5,6 +5,7 @@
     "dependencies": {
         "@babel/core": "7.12.3",
         "@pmmmwh/react-refresh-webpack-plugin": "0.4.3",
+        "@pythnetwork/client": "^1.0.1",
         "@solana/web3.js": "^1.11.0",
         "@svgr/webpack": "5.5.0",
         "@testing-library/dom": "^7.30.4",
@@ -23,6 +24,7 @@
         "babel-plugin-named-asset-import": "^0.3.7",
         "babel-preset-react-app": "^10.0.0",
         "bfj": "^7.0.2",
+        "buffer": "6.0.3",
         "camelcase": "^6.1.0",
         "case-sensitive-paths-webpack-plugin": "2.3.0",
         "classnames": "^2.3.1",
@@ -177,5 +179,8 @@
         "presets": [
             "react-app"
         ]
+    },
+    "resolutions": {
+        "buffer": "6.0.3"
     }
 }

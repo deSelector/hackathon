@@ -68,7 +68,7 @@ impl DOB {
 
         grid.assert_data_source(bids);
         grid.assert_data_source(asks);
-        grid.draw_grid();
+        grid.draw_gridlines();
 
         grid.clip_begin();
         self.draw_book_side(&grid, bids, Side::Bid);

@@ -59,7 +59,7 @@ impl Tape {
             MARGIN,
         );
         grid.assert_data_source(trades);
-        grid.draw_grid();
+        grid.draw_gridlines();
 
         grid.clip_begin();
         self.draw_tape(&grid, trades);

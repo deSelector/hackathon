@@ -9,6 +9,8 @@ use crate::ctx2d::vertical_line;
 use js_sys::Date;
 use web_sys::CanvasRenderingContext2d;
 
+const HIGHLIGHT_DURATION: i64 = 250;
+
 pub struct Grid<'a> {
     width: u32,
     height: u32,
@@ -82,7 +84,7 @@ impl<'a> Grid<'a> {
         set_text_baseline(ctx, "middle");
     }
 
-    pub fn draw_grid(&self) {
+    pub fn draw_gridlines(&self) {
         let ctx = self.get_ctx();
         self.clear();
 
@@ -92,29 +94,27 @@ impl<'a> Grid<'a> {
         let col_width = self.cell_width();
 
         // Vertical lines.
-        {
-            for i in 0..self.col_count + 1 {
-                let x = self.left() + (i as f64 * col_width).floor();
-                ctx.move_to(x, self.top());
-                ctx.line_to(x, self.bottom());
-                vertical_line(ctx, self.top(), self.bottom(), x);
+        for i in 0..self.col_count + 1 {
+            let x = self.left() + (i as f64 * col_width).floor();
+            ctx.move_to(x, self.top());
+            ctx.line_to(x, self.bottom());
+            vertical_line(ctx, self.top(), self.bottom(), x);
+        }
+
+        // Horizontal lines.
+        let mut j = 0;
+        loop {
+            let y = self.top() + (j * self.row_height) as f64;
+            if y < self.bottom() {
+                horizontal_line(ctx, self.left(), self.right(), y);
+                j += 1;
+            } else {
+                break;
             }
         }
 
-        {
-            // Horizontal lines.
-            let mut j = 0;
-            loop {
-                let y = self.top() + (j * self.row_height) as f64;
-                if y < self.bottom() {
-                    horizontal_line(ctx, self.left(), self.right(), y);
-                    j += 1;
-                } else {
-                    break;
-                }
-            }
-            horizontal_line(ctx, self.left(), self.right(), self.bottom());
-        }
+        // final bottom horizontal line
+        horizontal_line(ctx, self.left(), self.right(), self.bottom());
 
         ctx.stroke();
     }
@@ -122,7 +122,7 @@ impl<'a> Grid<'a> {
     pub fn draw_highlight(&self, x: f64, y: f64, width: f64, time: f64) {
         let ctx = self.get_ctx();
         let now = Date::new_0().get_time() as i64;
-        if now - time as i64 <= 250 {
+        if now - time as i64 <= HIGHLIGHT_DURATION {
             ctx.save();
             fill_rect(ctx, x, y, width, self.row_height.into(), "#ffffff22");
             ctx.restore();

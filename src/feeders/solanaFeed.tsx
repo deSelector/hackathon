@@ -1,12 +1,10 @@
-import { Connection } from "@solana/web3.js";
 import { fill } from "../context";
+import { init, priceMap } from "./solanaBridge";
 
-let buffer: ArrayBuffer;
+let data_buffer: ArrayBuffer;
 let raw_data: Block[] = [];
-let conn: Connection;
 
 const MAX_ROW_COUNT = 50;
-const URL = "https://api.mainnet-beta.solana.com";
 
 interface Block {
   tranCount: number;
@@ -24,31 +22,18 @@ export async function generateBlockData(
       time: Date.now(),
     } as Block);
 
-  const setTranCount = (item: Block, count: number = 0) => {
-    item.tranCount = count;
-    item.time = Date.now();
-  };
-  buffer = buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
+  data_buffer = data_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
 
-  conn = conn ?? new Connection(URL, "confirmed");
-  const epoch = await conn.getEpochInfo();
-  console.log(`EPOCH`, epoch);
+  // todo: move it outside of the loop?
+  await init();
 
-  if (raw_data[0]?.slot === epoch.absoluteSlot) {
-    //const block = await conn.getConfirmedBlock(epoch.absoluteSlot);
-    setTranCount(raw_data[0], epoch.transactionCount);
-  } else {
-    // if (raw_data.length) {
-    //   const block = await conn.getConfirmedBlock(raw_data[0].slot);
-    //   setTranCount(raw_data[0], block.transactions.length);
-    // }
-    raw_data.unshift(item(epoch.absoluteSlot, epoch.transactionCount));
-  }
+  raw_data.length = 0;
+  Array.from(priceMap.values()).map((p) => raw_data.push(item(p.price, 0)));
 
   raw_data = raw_data.slice(0, MAX_ROW_COUNT);
 
   return fill<Block>(
-    buffer,
+    data_buffer,
     raw_data,
     data_width,
     (data: Block, col: number) => {
