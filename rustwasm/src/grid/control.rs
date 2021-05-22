@@ -1,11 +1,4 @@
-use crate::ctx2d::clip_begin;
-use crate::ctx2d::clip_end;
-use crate::ctx2d::fill_rect;
-use crate::ctx2d::fill_text_aligned;
-use crate::ctx2d::horizontal_line;
-use crate::ctx2d::set_fill_style;
-use crate::ctx2d::set_text_baseline;
-use crate::ctx2d::vertical_line;
+use super::ctx2d::*;
 use js_sys::Date;
 use web_sys::CanvasRenderingContext2d;
 

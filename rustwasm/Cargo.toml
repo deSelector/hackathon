@@ -1,5 +1,5 @@
 [package]
-name = "rust-wasm"
+name = "rustwasm"
 version = "0.1.0"
 authors = ["deSelector <deselectors@gmail.com>"]
 edition = "2018"

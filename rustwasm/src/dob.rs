@@ -1,5 +1,6 @@
-use crate::ctx2d::*;
-use crate::grid::Grid;
+use crate::grid::control::*;
+use crate::grid::ctx2d::*;
+
 use crate::utils::*;
 use enum_iterator::IntoEnumIterator;
 use std::f64;

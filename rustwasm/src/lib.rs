@@ -2,7 +2,6 @@ use dob::DOB;
 use tape::Tape;
 use wasm_bindgen::prelude::*;
 
-mod ctx2d;
 mod dob;
 mod grid;
 mod tape;
