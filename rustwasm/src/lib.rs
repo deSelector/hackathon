@@ -1,10 +1,7 @@
-use dob::DOB;
-use tape::Tape;
 use wasm_bindgen::prelude::*;
 
 mod dob;
 mod grid;
-mod tape;
 mod utils;
 
 #[macro_use]
@@ -24,24 +21,7 @@ extern "C" {
     fn log(s: &str);
 }
 
-#[wasm_bindgen]
-pub fn init_panic_hook() {
-    console_error_panic_hook::set_once();
-}
-
 //#[macro_export]
 macro_rules! _console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
-
-#[wasm_bindgen]
-pub fn paint_dob(dob: DOB, bids: &[f64], asks: &[f64]) {
-    init_panic_hook();
-    dob.paint(bids, asks);
-}
-
-#[wasm_bindgen]
-pub fn paint_tape(tape: Tape, trades: &[f64]) {
-    init_panic_hook();
-    tape.paint(trades);
 }

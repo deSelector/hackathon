@@ -38,15 +38,14 @@ pub struct Tape {
 #[wasm_bindgen]
 impl Tape {
     pub fn new(id: String, width: u32, height: u32) -> Tape {
+        set_panic_hook();
         Tape { id, width, height }
     }
 
     pub fn get_data_width() -> u32 {
         DATA_WIDTH
     }
-}
 
-impl Tape {
     pub fn paint(&self, trades: &[f64]) {
         let ctx = &ctx(&self.id);
         let grid = Grid::new(
@@ -65,7 +64,9 @@ impl Tape {
         self.draw_tape(&grid, trades);
         grid.clip_end();
     }
+}
 
+impl Tape {
     fn draw_tape(&self, grid: &Grid, data: &[f64]) {
         let row_count = (data.len() / DATA_WIDTH as usize) as u32;
         let col_width = grid.cell_width();

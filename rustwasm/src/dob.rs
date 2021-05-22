@@ -46,15 +46,14 @@ pub struct DOB {
 #[wasm_bindgen]
 impl DOB {
     pub fn new(id: String, width: u32, height: u32) -> DOB {
+        set_panic_hook();
         DOB { id, width, height }
     }
 
     pub fn get_data_width() -> u32 {
         DATA_WIDTH
     }
-}
 
-impl DOB {
     pub fn paint(&self, bids: &[f64], asks: &[f64]) {
         let ctx = &ctx(&self.id);
         let grid = Grid::new(
@@ -77,7 +76,9 @@ impl DOB {
         self.draw_cumulative(&grid, bids, asks);
         grid.clip_end();
     }
+}
 
+impl DOB {
     fn draw_book_side(&self, grid: &Grid, data: &[f64], side: Side) {
         let row_count = (data.len() / DATA_WIDTH as usize) as u32;
         let col_width = grid.cell_width();

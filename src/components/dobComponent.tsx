@@ -16,7 +16,7 @@ export interface DOBComponentProps {
 }
 
 export function DOBComponent(props: DOBComponentProps) {
-  const grid = useRustWasm();
+  const wasm = useRustWasm();
   const [id] = useState<string>(props.id ?? "dob-canvas");
   // const { counter, setCounter } = useDataContext();
   const [freq, setFreq] = useState<number>(UPDATE_FREQ);
@@ -40,12 +40,12 @@ export function DOBComponent(props: DOBComponentProps) {
   };
 
   const tick = () => {
-    if (grid) {
-      const data_width = grid.DOB.get_data_width();
-      const dob = grid.DOB.new(id, size.width, size.height);
+    if (wasm) {
+      const data_width = wasm.DOB.get_data_width();
+      const dob = wasm.DOB.new(id, size.width, size.height);
       const { bids, asks } = generateDOBData(data_width);
 
-      grid.paint_dob(dob, bids, asks);
+      dob.paint(bids, asks);
     }
   };
 

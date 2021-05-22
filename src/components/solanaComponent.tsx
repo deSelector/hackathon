@@ -13,7 +13,7 @@ export interface SolanaComponentProps {
 }
 
 export function SolanaComponent(props: SolanaComponentProps) {
-  const grid = useRustWasm();
+  const wasm = useRustWasm();
   const [id] = useState<string>(props.id ?? "block-canvas");
   const [freq] = useState<number>(UPDATE_FREQ);
   const [size, setSize] = useState<{ width?: number; height?: number }>({
@@ -22,11 +22,11 @@ export function SolanaComponent(props: SolanaComponentProps) {
   });
 
   const tick = async () => {
-    if (grid) {
-      const data_width = grid.Tape.get_data_width();
-      const tape = grid.Tape.new(id, size.width, size.height);
+    if (wasm) {
+      const data_width = wasm.Tape.get_data_width();
+      const tape = wasm.Tape.new(id, size.width, size.height);
       const trades = await generateBlockData(data_width);
-      grid.paint_tape(tape, trades);
+      tape.paint(trades);
     }
   };
 

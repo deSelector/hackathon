@@ -4,11 +4,11 @@ import { DOBComponent, TapeComponent, SolanaComponent } from "./components";
 import { DataProvider } from "./context";
 
 function App() {
-  const [GridContext, grid] = useInitRustWasm();
+  const [GridContext, wasm] = useInitRustWasm();
 
   return (
     <DataProvider>
-      <GridContext.Provider value={grid}>
+      <GridContext.Provider value={wasm}>
         <div className="app">
           <div id="left-panel">
             <SolanaComponent />

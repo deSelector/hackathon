@@ -16,7 +16,7 @@ export interface TapeComponentProps {
 }
 
 export function TapeComponent(props: TapeComponentProps) {
-  const grid = useRustWasm();
+  const wasm = useRustWasm();
   const [id] = useState<string>(props.id ?? "tape-canvas");
   // const { counter, setCounter } = useDataContext();
   const [freq, setFreq] = useState<number>(UPDATE_FREQ);
@@ -40,12 +40,12 @@ export function TapeComponent(props: TapeComponentProps) {
   };
 
   const tick = () => {
-    if (grid) {
-      const data_width = grid.Tape.get_data_width();
-      const tape = grid.Tape.new(id, size.width, size.height);
+    if (wasm) {
+      const data_width = wasm.Tape.get_data_width();
+      const tape = wasm.Tape.new(id, size.width, size.height);
       const trades = generateTradeData(data_width);
 
-      grid.paint_tape(tape, trades);
+      tape.paint(trades);
     }
   };
 
