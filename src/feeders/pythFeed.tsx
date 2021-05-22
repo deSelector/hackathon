@@ -1,5 +1,5 @@
 import { fill } from "../context";
-import { init, priceMap } from "./solanaBridge";
+import { init, priceMap } from "./pythBridge";
 
 let data_buffer: ArrayBuffer;
 let raw_data: Block[] = [];

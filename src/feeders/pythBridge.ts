@@ -32,11 +32,11 @@ export async function init(): Promise<any> {
         console.log(`BRIDGE: initializing`);
         try {
             pending = conn.getAccountInfo(ORACLE_MAPPING_PUBLIC_KEY);
-            const accounts = await pending;
-            if (accounts) {
+            const mapping = await pending;
+            if (mapping) {
                 console.log(`BRIDGE: loaded account info`);
-                const { productAccountKeys } = parseMappingData(accounts.data);
-                const productAccts = await getMultipleAccounts(
+                const { productAccountKeys } = parseMappingData(mapping.data);
+                const productAccts = await getAccounts(
                     conn,
                     productAccountKeys.map((a) => a.toBase58()),
                     "confirmed"
@@ -46,12 +46,11 @@ export async function init(): Promise<any> {
                     parseProductData(Buffer.from(a.data))
                 );
                 console.log(`BRIDGE: parsed ${products.length} products`);
-                const priceAccts = await getMultipleAccounts(
+                const priceAccts = await getAccounts(
                     conn,
                     products.map((p) => p.priceAccountKey.toBase58()),
                     "confirmed"
                 );
-                console.log(`BRIDGE: parsed ${priceAccts.keys.length} accounts`);
                 priceAccts.keys.forEach((key, i) => {
                     const { symbol } = products[i].product;
                     setPrice(symbol, priceAccts.values[i].data);
@@ -68,9 +67,9 @@ export async function init(): Promise<any> {
 
 }
 
-const getMultipleAccounts = async (connection: Connection, keys: string[], commitment: Commitment) => {
+const getAccounts = async (connection: Connection, keys: string[], commitment: Commitment) => {
     const accounts = await Promise.all(chunks(keys, 99)
-        .map((chunk) => getMultipleAccountsCore(connection, chunk, commitment)));
+        .map((chunk) => getAccountsCore(connection, chunk, commitment)));
 
     return {
         keys,
@@ -87,7 +86,7 @@ const getMultipleAccounts = async (connection: Connection, keys: string[], commi
     };
 };
 
-const getMultipleAccountsCore = async (connection: Connection, keys: string[], commitment: Commitment) => {
+const getAccountsCore = async (connection: Connection, keys: string[], commitment: Commitment) => {
     const args = connection._buildArgs([keys], commitment, "base64");
     const unsafeRes = await (connection as any)._rpcRequest("getMultipleAccounts", args);
 
