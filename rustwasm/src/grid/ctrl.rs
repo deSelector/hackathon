@@ -17,9 +17,6 @@ macro_rules! _console_log {
 }
 
 const DATA_WIDTH: u32 = 3; // price, size, time
-const COL_COUNT: u32 = 3;
-const ROW_HEIGHT: u32 = 30;
-const MARGIN: u32 = 0;
 
 #[derive(PartialEq, Copy, Clone, IntoEnumIterator)]
 pub enum Field {
@@ -29,17 +26,24 @@ pub enum Field {
 }
 
 #[wasm_bindgen]
+#[derive(Default)]
 pub struct Grid {
     id: String,
     width: u32,
     height: u32,
+    pub col_count: u32,
 }
 
 #[wasm_bindgen]
 impl Grid {
     pub fn new(id: String, width: u32, height: u32) -> Grid {
         set_panic_hook();
-        Grid { id, width, height }
+        Grid {
+            id,
+            width,
+            height,
+            ..Default::default()
+        }
     }
 
     pub fn get_data_width() -> u32 {
@@ -48,15 +52,8 @@ impl Grid {
 
     pub fn paint(&self, trades: &[f64]) {
         let ctx = &ctx(&self.id);
-        let grid = GridCore::new(
-            ctx,
-            self.width,
-            self.height,
-            ROW_HEIGHT,
-            COL_COUNT,
-            DATA_WIDTH,
-            MARGIN,
-        );
+        let mut grid = GridCore::new(ctx, self.width, self.height, DATA_WIDTH);
+        grid.col_count = self.col_count;
         grid.assert_data_source(trades);
         grid.draw_gridlines();
 
@@ -72,7 +69,7 @@ impl Grid {
         let col_width = grid.cell_width();
 
         for r in 0.. {
-            let y = grid.top() + (r * ROW_HEIGHT) as f64;
+            let y = grid.top() + (r * grid.row_height) as f64;
             if y < grid.bottom() as f64 && r < row_count {
                 for &field in [Field::Price, Field::Size, Field::Time].iter() {
                     let x = grid.left() + self.cell_x(grid, field);

@@ -44,6 +44,7 @@ export function TapeComponent(props: TapeComponentProps) {
       const data_width = wasm.Grid.get_data_width();
       const grid = wasm.Grid.new(id, size.width, size.height);
       const data = generateTradeData(data_width);
+      grid.col_count = 3;
       grid.paint(data);
     }
   };

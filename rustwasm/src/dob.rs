@@ -19,8 +19,6 @@ macro_rules! _console_log {
 const DATA_WIDTH: u32 = 4; // price, size, cumSize, time
 const SIDE_COL_COUNT: u32 = 2;
 const TOTAL_COL_COUNT: u32 = SIDE_COL_COUNT * 2;
-const ROW_HEIGHT: u32 = 30;
-const MARGIN: u32 = 0;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum Side {
@@ -56,16 +54,9 @@ impl DOB {
 
     pub fn paint(&self, bids: &[f64], asks: &[f64]) {
         let ctx = &ctx(&self.id);
-        let grid = GridCore::new(
-            ctx,
-            self.width,
-            self.height,
-            ROW_HEIGHT,
-            TOTAL_COL_COUNT,
-            DATA_WIDTH,
-            MARGIN,
-        );
+        let mut grid = GridCore::new(ctx, self.width, self.height, DATA_WIDTH);
 
+        grid.col_count = TOTAL_COL_COUNT;
         grid.assert_data_source(bids);
         grid.assert_data_source(asks);
         grid.draw_gridlines();
@@ -86,7 +77,7 @@ impl DOB {
         let align = self.cell_align(side);
 
         for r in 0.. {
-            let y = grid.top() + (r * ROW_HEIGHT) as f64;
+            let y = grid.top() + (r * grid.row_height) as f64;
             if y < grid.bottom() as f64 && r < row_count {
                 for &field in [Field::Price, Field::Size].iter() {
                     let x = dx + self.cell_x(grid, side, field);
@@ -139,7 +130,7 @@ impl DOB {
         ctx.save();
 
         for r in 0.. {
-            let y = grid.top() + (r * ROW_HEIGHT) as f64;
+            let y = grid.top() + (r * grid.row_height) as f64;
             if y < grid.bottom() as f64 && r < row_count {
                 let len = grid
                     .cell_value(data, r as i32, Field::CumSize as u32)
@@ -155,7 +146,7 @@ impl DOB {
                     Side::Ask => "#ff3b6960",
                 };
 
-                fill_rect(ctx, x, y, len, ROW_HEIGHT as f64, color);
+                fill_rect(ctx, x, y, len, grid.row_height as f64, color);
             } else {
                 break;
             }

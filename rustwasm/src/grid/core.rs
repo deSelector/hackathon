@@ -1,16 +1,21 @@
+#![allow(dead_code)]
+
 use super::ctx2d::*;
 use js_sys::Date;
 use web_sys::CanvasRenderingContext2d;
 
 const HIGHLIGHT_DURATION: i64 = 250;
+const ROW_HEIGHT: u32 = 30;
+const MARGIN: u32 = 0;
 
+#[derive(Default)]
 pub struct GridCore<'a> {
+    ctx: Option<&'a CanvasRenderingContext2d>,
     width: u32,
     height: u32,
-    row_height: u32,
-    col_count: u32,
-    margin: u32,
-    ctx: Option<&'a CanvasRenderingContext2d>,
+    pub row_height: u32,
+    pub col_count: u32,
+    pub margin: u32,
     data_width: u32,
 }
 
@@ -19,19 +24,16 @@ impl<'a> GridCore<'a> {
         ctx: &'a CanvasRenderingContext2d,
         width: u32,
         height: u32,
-        row_height: u32,
-        col_count: u32,
         data_width: u32,
-        margin: u32,
     ) -> GridCore {
         GridCore {
             ctx: Some(ctx),
             width,
             height,
-            row_height,
-            col_count,
+            row_height: ROW_HEIGHT,
             data_width,
-            margin,
+            margin: MARGIN,
+            ..Default::default()
         }
     }
 
@@ -161,11 +163,12 @@ impl<'a> GridCore<'a> {
     pub fn bottom(&self) -> f64 {
         (self.height - self.margin) as f64 - 0.5
     }
-
     pub fn mid(&self) -> f64 {
         self.left() + ((self.client_width() / 2.0) as i32) as f64
     }
+}
 
+impl<'a> GridCore<'a> {
     pub fn clip_begin(&self) {
         clip_begin(
             self.get_ctx(),
@@ -175,7 +178,6 @@ impl<'a> GridCore<'a> {
             self.client_height(),
         );
     }
-
     pub fn clip_end(&self) {
         clip_end(self.get_ctx());
     }

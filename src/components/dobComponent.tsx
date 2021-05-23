@@ -44,7 +44,7 @@ export function DOBComponent(props: DOBComponentProps) {
       const data_width = wasm.DOB.get_data_width();
       const dob = wasm.DOB.new(id, size.width, size.height);
       const { bids, asks } = generateDOBData(data_width);
-
+      dob.col_count = 3;
       dob.paint(bids, asks);
     }
   };
