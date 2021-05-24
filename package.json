@@ -99,6 +99,7 @@
         "start": "wasm-pack build rustwasm && node scripts/start.js",
         "build": "wasm-pack build rustwasm && webpack --mode=production",
         "test": "node scripts/test.js",
+        "test:wasm": "wasm-pack test --chrome --headless rustwasm",
         "build:wasm": "wasm-pack build rustwasm",
         "build:dev": "webpack --mode=development",
         "build:prod": "webpack --mode=production",
