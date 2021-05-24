@@ -1,13 +1,14 @@
 use wasm_bindgen::prelude::*;
 
 mod dob;
-mod grid;
+pub mod grid;
 mod utils;
 
 #[macro_use]
 extern crate more_asserts;
 extern crate enum_iterator;
 extern crate js_sys;
+extern crate serde;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.

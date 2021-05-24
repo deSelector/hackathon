@@ -1,4 +1,5 @@
 use crate::grid::core::*;
+use crate::grid::schema::*;
 use crate::utils::*;
 use chrono::prelude::*;
 use chrono::Local;
@@ -29,8 +30,8 @@ pub enum Field {
 #[derive(Default)]
 pub struct Grid {
     id: String,
-    width: u32,
-    height: u32,
+    pub width: u32,
+    pub height: u32,
     pub col_count: u32,
 }
 
@@ -60,6 +61,13 @@ impl Grid {
         grid.clip_begin();
         self.render(&grid, trades);
         grid.clip_end();
+    }
+
+    pub fn set_schema(&mut self, obj: &JsValue) {
+        console_error_panic_hook::set_once();
+        let schema = obj.into_serde::<Schema>().unwrap();
+        _console_log!("SCHEMA: {:?}, el={:?}", obj, schema);
+        self.col_count = schema.cols.len() as u32;
     }
 }
 
