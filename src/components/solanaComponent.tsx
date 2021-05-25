@@ -6,7 +6,7 @@ import "./styles.scss";
 
 import { blockSchema, generateBlockData } from "./../feeders";
 
-const UPDATE_FREQ = 100;
+const UPDATE_FREQ = 50;
 
 export interface SolanaComponentProps {
   id?: string;
