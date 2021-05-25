@@ -60,7 +60,8 @@ impl Grid {
         grid.draw_gridlines();
 
         grid.clip_begin();
-        self.do_render(&grid, data);
+        self.render_data(&grid, data);
+        self.render_header(&grid);
         grid.clip_end();
     }
 
@@ -73,12 +74,12 @@ impl Grid {
 }
 
 impl Grid {
-    fn do_render(&self, grid: &GridCore, data: &[f64]) {
+    fn render_data(&self, grid: &GridCore, data: &[f64]) {
         let row_count = (data.len() / DATA_WIDTH as usize) as u32;
         let col_width = grid.cell_width();
 
         for r in 0.. {
-            let y = grid.top() + (r * grid.row_height) as f64;
+            let y = grid.top() + ((r + HEADER_LINES) * grid.row_height) as f64;
             if y < grid.bottom() as f64 && r < row_count {
                 for &field in [Field::Price, Field::Size, Field::Time].iter() {
                     let x = grid.left() + self.cell_x(grid, field);
@@ -96,12 +97,27 @@ impl Grid {
                         y,
                         col_width,
                         "right",
-                        Some(hi),
+                        hi,
                     );
                 }
             } else {
                 break;
             }
+        }
+    }
+
+    fn render_header(&self, grid: &GridCore) {
+        let col_width = grid.cell_width();
+        for i in 0..self.schema.cols.len() {
+            let x = grid.left() + self.cell_x_by_index(grid, i);
+            grid.fill_text_aligned(
+                self.schema.cols[i].name.as_str(),
+                x,
+                0_f64,
+                col_width,
+                "center",
+                false,
+            );
         }
     }
 }
@@ -123,6 +139,10 @@ impl Grid {
             Field::Size => grid.cell_width(),
             Field::Time => grid.cell_width() * 2.0,
         }
+    }
+
+    fn cell_x_by_index(&self, grid: &GridCore, index: usize) -> f64 {
+        index as f64 * grid.cell_width()
     }
 
     fn cell_precision(&self, field: Field) -> usize {

@@ -24,13 +24,13 @@ pub fn fill_text_aligned(
     width: f64,
     height: f64,
     text_align: &str,
-    highlight: Option<bool>,
+    highlight: bool,
 ) {
     const PADDING_H: f64 = 10.0;
     let dy = y + height / 2.0;
     set_text_align(ctx, text_align);
 
-    if highlight.unwrap() {
+    if highlight {
         ctx.save();
         set_fill_style(ctx, "white");
     }
@@ -41,7 +41,7 @@ pub fn fill_text_aligned(
         _ => ctx.fill_text(v, x + PADDING_H, dy).unwrap(),
     };
 
-    if highlight.unwrap() {
+    if highlight {
         ctx.restore();
     }
 }

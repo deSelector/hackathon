@@ -4,6 +4,7 @@ use super::ctx2d::*;
 use js_sys::Date;
 use web_sys::CanvasRenderingContext2d;
 
+pub const HEADER_LINES: u32 = 1;
 const HIGHLIGHT_DURATION: i64 = 100;
 const ROW_HEIGHT: u32 = 30;
 const MARGIN: u32 = 0;
@@ -101,7 +102,7 @@ impl<'a> GridCore<'a> {
         let mut j = 0;
         loop {
             let y = self.top() + (j * self.row_height) as f64;
-            if y < self.bottom() && j <= self.row_count {
+            if y < self.bottom() && j <= self.row_count + HEADER_LINES {
                 horizontal_line(ctx, self.left(), self.right(), y);
                 j += 1;
             } else {
@@ -137,7 +138,7 @@ impl<'a> GridCore<'a> {
         y: f64,
         width: f64,
         align: &str,
-        highlight: Option<bool>,
+        highlight: bool,
     ) {
         fill_text_aligned(
             self.get_ctx(),

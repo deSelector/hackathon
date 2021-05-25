@@ -110,7 +110,7 @@ impl DOB {
                         y,
                         col_width,
                         align,
-                        Some(hi),
+                        hi,
                     );
                 }
             } else {
