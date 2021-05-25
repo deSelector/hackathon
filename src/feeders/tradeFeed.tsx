@@ -1,4 +1,5 @@
 import { fill } from "../context";
+import { Schema } from "../core";
 
 let trade_buffer: ArrayBuffer;
 let raw_data: Trade[];
@@ -11,6 +12,14 @@ interface Trade {
   size: number;
   time: number;
 }
+
+export const tradeSchema: Schema = {
+  cols: [
+    { id: 1, name: "Col 1" },
+    { id: 2, name: "Col 2" },
+    { id: 3, name: "Col 3" },
+  ],
+};
 
 export function generateTradeData(data_width: number): Float64Array {
   const item = () =>

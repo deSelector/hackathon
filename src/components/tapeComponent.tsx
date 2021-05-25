@@ -7,20 +7,11 @@ import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 import classnames from "classnames";
 // import { useDataContext } from "../context";
-import { generateTradeData } from "../feeders";
-import { Schema } from "../core";
+import { generateTradeData, tradeSchema } from "../feeders";
 
 const frequencies = [0, 50, 100, 250, 500, 750, 1000, 10000];
 
 const UPDATE_FREQ = 500;
-
-const schema: Schema = {
-  cols: [
-    { id: 1, name: "Col 1" },
-    { id: 2, name: "Col 2" },
-    { id: 3, name: "Col 3" },
-  ],
-};
 
 export interface TapeComponentProps {
   id?: string;
@@ -39,7 +30,7 @@ export function TapeComponent(props: TapeComponentProps) {
   const wasm = useRustWasm();
   if (wasm && !grid) {
     const g = wasm.Grid.new(id, size.width, size.height);
-    g.set_schema(schema);
+    g.set_schema(tradeSchema);
     setGrid(g);
   }
 

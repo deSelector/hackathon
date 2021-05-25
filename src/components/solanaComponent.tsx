@@ -4,7 +4,7 @@ import { useRustWasm } from "../hooks";
 import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 
-import { generateBlockData } from "./../feeders";
+import { blockSchema, generateBlockData } from "./../feeders";
 
 const UPDATE_FREQ = 100;
 
@@ -13,20 +13,27 @@ export interface SolanaComponentProps {
 }
 
 export function SolanaComponent(props: SolanaComponentProps) {
-  const wasm = useRustWasm();
   const [id] = useState<string>(props.id ?? "block-canvas");
   const [freq] = useState<number>(UPDATE_FREQ);
+  const [grid, setGrid] = useState<any>(null);
   const [size, setSize] = useState<{ width?: number; height?: number }>({
     width: 0,
     height: 0,
   });
 
+  const wasm = useRustWasm();
+  if (wasm && !grid) {
+    const g = wasm.Grid.new(id, size.width, size.height);
+    g.set_schema(blockSchema);
+    setGrid(g);
+  }
+
   const tick = async () => {
-    if (wasm) {
-      const data_width = wasm.Grid.get_data_width();
-      const grid = wasm.Grid.new(id, size.width, size.height);
+    if (grid) {
+      grid.width = size.width;
+      grid.height = size.height;
+      const data_width = wasm.Grid.get_data_width(); // todo: remove later
       const data = await generateBlockData(data_width);
-      grid.col_count = 3;
       grid.paint(data);
     }
   };

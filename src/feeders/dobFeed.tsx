@@ -1,4 +1,5 @@
 import { fill } from "../context";
+import { Schema } from "../core";
 
 let bid_buffer: ArrayBuffer;
 let ask_buffer: ArrayBuffer;
@@ -12,6 +13,13 @@ interface Quote {
   size: number;
   time: number;
 }
+
+export const dobSchema: Schema = {
+  cols: [
+    { id: 1, name: "Col 1" },
+    { id: 2, name: "Col 2" },
+  ],
+};
 
 export function generateDOBData(data_width: number): {
   bids: Float64Array;

@@ -1,4 +1,5 @@
 import { fill } from "../context";
+import { Schema } from "../core";
 import { init, priceMap } from "./pythBridge";
 
 let data_buffer: ArrayBuffer;
@@ -11,6 +12,14 @@ interface Block {
   slot: number;
   time: number;
 }
+
+export const blockSchema: Schema = {
+  cols: [
+    { id: 1, name: "Price" },
+    { id: 2, name: "Diff" },
+    { id: 3, name: "Time" },
+  ],
+};
 
 export async function generateBlockData(
   data_width: number

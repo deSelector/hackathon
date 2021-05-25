@@ -30,9 +30,10 @@ pub enum Field {
 #[derive(Default)]
 pub struct Grid {
     id: String,
+    schema: Schema,
+    col_count: u32,
     pub width: u32,
     pub height: u32,
-    pub col_count: u32,
 }
 
 #[wasm_bindgen]
@@ -65,9 +66,9 @@ impl Grid {
 
     pub fn set_schema(&mut self, obj: &JsValue) {
         console_error_panic_hook::set_once();
-        let schema = obj.into_serde::<Schema>().unwrap();
-        _console_log!("SCHEMA: {:?}, el={:?}", obj, schema);
-        self.col_count = schema.cols.len() as u32;
+        self.schema = obj.into_serde::<Schema>().unwrap();
+        _console_log!("SCHEMA: {:?}, el={:?}", obj, self.schema);
+        self.col_count = self.schema.cols.len() as u32;
     }
 }
 

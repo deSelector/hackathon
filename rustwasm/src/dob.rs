@@ -1,5 +1,6 @@
 use crate::grid::core::*;
 use crate::grid::ctx2d::*;
+use crate::grid::schema::Schema;
 
 use crate::utils::*;
 use enum_iterator::IntoEnumIterator;
@@ -17,8 +18,6 @@ macro_rules! _console_log {
 }
 
 const DATA_WIDTH: u32 = 4; // price, size, cumSize, time
-const SIDE_COL_COUNT: u32 = 2;
-const TOTAL_COL_COUNT: u32 = SIDE_COL_COUNT * 2;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum Side {
@@ -34,18 +33,27 @@ pub enum Field {
     Time = 3,
 }
 
+// todo: consolidate with generic Grid
 #[wasm_bindgen]
+#[derive(Default)]
 pub struct DOB {
     id: String,
-    width: u32,
-    height: u32,
+    schema: Schema,
+    col_count: u32,
+    pub width: u32,
+    pub height: u32,
 }
 
 #[wasm_bindgen]
 impl DOB {
     pub fn new(id: String, width: u32, height: u32) -> DOB {
         set_panic_hook();
-        DOB { id, width, height }
+        DOB {
+            id,
+            width,
+            height,
+            ..Default::default()
+        }
     }
 
     pub fn get_data_width() -> u32 {
@@ -56,7 +64,7 @@ impl DOB {
         let ctx = &ctx(&self.id);
         let mut grid = GridCore::new(ctx, self.width, self.height, DATA_WIDTH);
 
-        grid.col_count = TOTAL_COL_COUNT;
+        grid.col_count = self.col_count * 2;
         grid.assert_data_source(bids);
         grid.assert_data_source(asks);
         grid.draw_gridlines();
@@ -66,6 +74,13 @@ impl DOB {
         self.draw_book_side(&grid, asks, Side::Ask);
         self.draw_cumulative(&grid, bids, asks);
         grid.clip_end();
+    }
+
+    pub fn set_schema(&mut self, obj: &JsValue) {
+        console_error_panic_hook::set_once();
+        self.schema = obj.into_serde::<Schema>().unwrap();
+        _console_log!("SCHEMA: {:?}, el={:?}", obj, self.schema);
+        self.col_count = self.schema.cols.len() as u32;
     }
 }
 
@@ -176,7 +191,7 @@ impl DOB {
         grid.left()
             + match side {
                 Side::Bid => 0.0,
-                Side::Ask => grid.cell_width() * SIDE_COL_COUNT as f64,
+                Side::Ask => grid.cell_width() * self.col_count as f64,
             }
     }
 

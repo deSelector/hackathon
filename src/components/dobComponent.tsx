@@ -5,7 +5,7 @@ import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 import classnames from "classnames";
 // import { useDataContext } from "../context";
-import { generateDOBData } from "../feeders";
+import { dobSchema, generateDOBData } from "../feeders";
 
 const frequencies = [0, 50, 100, 250, 500, 750, 1000, 10000];
 
@@ -16,14 +16,21 @@ export interface DOBComponentProps {
 }
 
 export function DOBComponent(props: DOBComponentProps) {
-  const wasm = useRustWasm();
   const [id] = useState<string>(props.id ?? "dob-canvas");
   // const { counter, setCounter } = useDataContext();
   const [freq, setFreq] = useState<number>(UPDATE_FREQ);
+  const [grid, setGrid] = useState<any>(null);
   const [size, setSize] = useState<{ width?: number; height?: number }>({
     width: 0,
     height: 0,
   });
+
+  const wasm = useRustWasm();
+  if (wasm && !grid) {
+    const g = wasm.DOB.new(id, size.width, size.height);
+    g.set_schema(dobSchema);
+    setGrid(g);
+  }
 
   const buttons = () => {
     return frequencies.map((value) => (
@@ -40,12 +47,12 @@ export function DOBComponent(props: DOBComponentProps) {
   };
 
   const tick = () => {
-    if (wasm) {
-      const data_width = wasm.DOB.get_data_width();
-      const dob = wasm.DOB.new(id, size.width, size.height);
+    if (grid) {
+      grid.width = size.width;
+      grid.height = size.height;
+      const data_width = wasm.DOB.get_data_width(); // todo: remove later
       const { bids, asks } = generateDOBData(data_width);
-      dob.col_count = 3;
-      dob.paint(bids, asks);
+      grid.paint(bids, asks);
     }
   };
 
