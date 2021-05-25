@@ -15,6 +15,7 @@ pub struct GridCore<'a> {
     height: u32,
     pub row_height: u32,
     pub col_count: u32,
+    pub row_count: u32,
     pub margin: u32,
     data_width: u32,
 }
@@ -100,7 +101,7 @@ impl<'a> GridCore<'a> {
         let mut j = 0;
         loop {
             let y = self.top() + (j * self.row_height) as f64;
-            if y < self.bottom() {
+            if y < self.bottom() && j <= self.row_count {
                 horizontal_line(ctx, self.left(), self.right(), y);
                 j += 1;
             } else {
@@ -190,5 +191,9 @@ impl<'a> GridCore<'a> {
             data.len(),
             self.data_width
         );
+    }
+
+    pub fn calc_row_count(&self, data: &[f64]) -> u32 {
+        data.len() as u32 / self.data_width
     }
 }

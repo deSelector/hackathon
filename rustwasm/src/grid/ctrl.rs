@@ -56,7 +56,7 @@ impl Grid {
         let ctx = &ctx(&self.id);
         let mut grid = GridCore::new(ctx, self.width, self.height, DATA_WIDTH);
         grid.col_count = self.col_count;
-        grid.assert_data_source(data);
+        grid.row_count = grid.calc_row_count(data);
         grid.draw_gridlines();
 
         grid.clip_begin();

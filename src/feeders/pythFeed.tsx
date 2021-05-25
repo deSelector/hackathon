@@ -2,11 +2,9 @@ import { fill } from "../context";
 import { Schema } from "../core";
 import { init, priceMap } from "./pythBridge";
 
-let data_buffer: ArrayBuffer;
+let data_buffer = new ArrayBuffer(0);
 let raw_data = new Map<string, Block>();
 let last_update: number = 0;
-
-const MAX_ROW_COUNT = 50;
 
 interface Block {
   price: number;
@@ -32,8 +30,6 @@ export async function generateBlockData(
       time: Date.now(),
     } as Block);
 
-  data_buffer = data_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
-
   // todo: move it outside of the loop?
   await init();
 
@@ -41,8 +37,12 @@ export async function generateBlockData(
     .filter((p) => p.time > last_update)
     .map((p) => raw_data.set(p.symbol, item(p.price, p.confidence)));
 
-  const data = Array.from(raw_data.values());
   last_update = Date.now();
+  const data = Array.from(raw_data.values());
+  const size = raw_data.size * data_width * 8;
+  if (data_buffer.byteLength < size) {
+    data_buffer = new ArrayBuffer(size);
+  }
 
   return fill<Block>(
     data_buffer,
