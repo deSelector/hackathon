@@ -12,6 +12,8 @@ const MARGIN: u32 = 0;
 #[derive(Default)]
 pub struct GridCore<'a> {
     ctx: Option<&'a CanvasRenderingContext2d>,
+    left: u32,
+    top: u32,
     width: u32,
     height: u32,
     pub row_height: u32,
@@ -24,12 +26,16 @@ pub struct GridCore<'a> {
 impl<'a> GridCore<'a> {
     pub fn new(
         ctx: &'a CanvasRenderingContext2d,
+        left: u32,
+        top: u32,
         width: u32,
         height: u32,
         data_width: u32,
     ) -> GridCore {
         GridCore {
             ctx: Some(ctx),
+            left,
+            top,
             width,
             height,
             row_height: ROW_HEIGHT,
@@ -56,12 +62,15 @@ impl<'a> GridCore<'a> {
         }
     }
 
+    pub fn cell_x(&self, index: usize) -> f64 {
+        index as f64 * self.cell_width()
+    }
     pub fn clear(&self) {
         let ctx = self.get_ctx();
         fill_rect(
             ctx,
-            0.0,
-            0.0,
+            self.left as f64,
+            self.top as f64,
             self.width as f64,
             self.height as f64,
             &"#0b0e17",
@@ -116,6 +125,11 @@ impl<'a> GridCore<'a> {
         ctx.stroke();
     }
 
+    pub fn last_row_value(&self, data: &[f64], col: u32) -> f64 {
+        self.cell_value(data, self.row_count as i32 - 1, col)
+            .unwrap_or_default()
+    }
+
     pub fn is_highlight(&self, time: f64) -> bool {
         let now = Date::new_0().get_time() as i64;
         now - time as i64 <= HIGHLIGHT_DURATION
@@ -168,16 +182,16 @@ impl<'a> GridCore<'a> {
         (self.height - 2 * self.margin) as f64
     }
     pub fn left(&self) -> f64 {
-        self.margin as f64 + 0.5
+        (self.left + self.margin) as f64 + 0.5
     }
     pub fn top(&self) -> f64 {
-        self.margin as f64 + 0.5
+        (self.top + self.margin) as f64 + 0.5
     }
     pub fn right(&self) -> f64 {
-        (self.width - self.margin) as f64 - 0.5
+        (self.left + self.width - self.margin) as f64 - 0.5
     }
     pub fn bottom(&self) -> f64 {
-        (self.height - self.margin) as f64 - 0.5
+        (self.top + self.height - self.margin) as f64 - 0.5
     }
     pub fn mid(&self) -> f64 {
         self.left() + ((self.client_width() / 2.0) as i32) as f64

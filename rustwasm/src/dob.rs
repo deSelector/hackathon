@@ -18,11 +18,12 @@ macro_rules! _console_log {
 }
 
 #[derive(PartialEq, Copy, Clone)]
-pub enum Side {
+enum Side {
     Bid = 0,
     Ask = 1,
 }
 
+// todo; remove
 #[derive(PartialEq, Copy, Clone, IntoEnumIterator)]
 pub enum Field {
     Price = 0,
@@ -31,7 +32,6 @@ pub enum Field {
     Time = 3,
 }
 
-// todo: consolidate with generic Grid
 #[wasm_bindgen]
 #[derive(Default)]
 pub struct DOB {
@@ -58,18 +58,37 @@ impl DOB {
 
     pub fn render(&self, bids: &[f64], asks: &[f64]) {
         let ctx = &ctx(&self.id);
-        let mut grid = GridCore::new(ctx, self.width, self.height, self.data_width);
 
-        grid.col_count = self.col_count * 2;
-        grid.assert_data_source(bids);
-        grid.assert_data_source(asks);
-        grid.draw_gridlines();
+        let mut left = (
+            GridCore::new(ctx, 0, 0, self.width / 2, self.height, self.data_width),
+            bids,
+            Side::Bid,
+        );
+        let mut right = (
+            GridCore::new(
+                ctx,
+                self.width / 2 + 1,
+                0,
+                self.width / 2,
+                self.height,
+                self.data_width,
+            ),
+            asks,
+            Side::Ask,
+        );
 
-        grid.clip_begin();
-        self.draw_book_side(&grid, bids, Side::Bid);
-        self.draw_book_side(&grid, asks, Side::Ask);
-        self.draw_cumulative(&grid, bids, asks);
-        grid.clip_end();
+        let ratio = self.calc_bid_side_ratio(&left.0, &left.1, &right.0, &right.1);
+
+        for (grid, data, side) in [&mut left, &mut right].iter_mut() {
+            grid.col_count = self.schema.cols.len() as u32;
+            grid.assert_data_source(data);
+            grid.draw_gridlines();
+
+            grid.clip_begin();
+            self.render_book(grid, data, *side);
+            self.render_pyramid(grid, data, *side, ratio);
+            grid.clip_end();
+        }
     }
 
     pub fn set_schema(&mut self, obj: &JsValue) {
@@ -81,17 +100,18 @@ impl DOB {
 }
 
 impl DOB {
-    fn draw_book_side(&self, grid: &GridCore, data: &[f64], side: Side) {
+    fn render_book(&self, grid: &GridCore, data: &[f64], side: Side) {
         let row_count = (data.len() / self.data_width as usize) as u32;
         let col_width = grid.cell_width();
-        let dx = self.start_x(grid, side);
+        let dx = grid.left();
+
         let align = self.cell_align(side);
 
         for r in 0.. {
             let y = grid.top() + (r * grid.row_height) as f64;
             if y < grid.bottom() as f64 && r < row_count {
                 for &field in [Field::Price, Field::Size].iter() {
-                    let x = dx + self.cell_x(grid, side, field);
+                    let x = dx + grid.cell_x(field as usize);
                     let v = grid
                         .cell_value(data, r as i32, field as u32)
                         .unwrap_or_default();
@@ -115,26 +135,31 @@ impl DOB {
         }
     }
 
-    fn draw_cumulative(&self, grid: &GridCore, bids: &[f64], asks: &[f64]) {
+    fn calc_bid_side_ratio(
+        &self,
+        left_grid: &GridCore,
+        left_data: &[f64],
+        right_grid: &GridCore,
+        right_data: &[f64],
+    ) -> f64 {
         let max_cumulative_value = std::cmp::max(
-            self.last_row_value(grid, bids, Field::CumSize) as u32,
-            self.last_row_value(grid, asks, Field::CumSize) as u32,
+            left_grid.last_row_value(left_data, 2 /*Field::CumSize*/) as u32,
+            right_grid.last_row_value(right_data, 2 /*Field::CumSize*/) as u32,
         ) as f64;
 
         if max_cumulative_value > 0.0 {
-            let ratio = grid.client_width() / max_cumulative_value / 2.0;
-            self.draw_cumulative_side(grid, bids, Side::Bid, ratio);
-            self.draw_cumulative_side(grid, asks, Side::Ask, ratio);
+            left_grid.client_width() / max_cumulative_value / 2.0
+        } else {
+            0.0
         }
     }
 
-    fn draw_cumulative_side(&self, grid: &GridCore, data: &[f64], side: Side, ratio: f64) {
+    fn render_pyramid(&self, grid: &GridCore, data: &[f64], side: Side, ratio: f64) {
         let row_count = (data.len() / self.data_width as usize) as u32;
         if row_count <= 0 {
             return;
         }
 
-        let dim = self.side_dim(grid, side);
         let ctx = grid.get_ctx();
         ctx.save();
 
@@ -146,8 +171,8 @@ impl DOB {
                     .unwrap_or_default()
                     * ratio;
                 let x = match side {
-                    Side::Bid => dim.1 - len,
-                    Side::Ask => dim.0,
+                    Side::Bid => grid.right() - len,
+                    Side::Ask => grid.left(),
                 };
 
                 let color = match side {
@@ -166,48 +191,6 @@ impl DOB {
 }
 
 impl DOB {
-    fn side_dim(&self, grid: &GridCore, side: Side) -> (f64, f64) {
-        match side {
-            Side::Bid => (grid.left(), grid.mid()),
-            Side::Ask => (grid.mid(), grid.right()),
-        }
-    }
-
-    fn last_row_value(&self, grid: &GridCore, data: &[f64], field: Field) -> f64 {
-        match data.len() {
-            len if len > 0 => grid
-                .cell_value(
-                    data,
-                    (len as i32 / self.data_width as i32) - 1,
-                    field as u32,
-                )
-                .unwrap_or_default(),
-            _ => 0.0,
-        }
-    }
-    fn start_x(&self, grid: &GridCore, side: Side) -> f64 {
-        grid.left()
-            + match side {
-                Side::Bid => 0.0,
-                Side::Ask => grid.cell_width() * self.col_count as f64,
-            }
-    }
-
-    fn cell_x(&self, grid: &GridCore, side: Side, field: Field) -> f64 {
-        match side {
-            Side::Bid => match field {
-                Field::Size => 0.0,
-                Field::Price => grid.cell_width(),
-                _ => 0.0,
-            },
-            Side::Ask => match field {
-                Field::Price => 0.0,
-                Field::Size => grid.cell_width(),
-                _ => 0.0,
-            },
-        }
-    }
-
     fn cell_align(&self, side: Side) -> &str {
         match side {
             Side::Bid => "right",
@@ -215,6 +198,7 @@ impl DOB {
         }
     }
 
+    // todo: remove once we switch to schema
     fn cell_precision(&self, field: Field) -> usize {
         match field {
             Field::Price => 3,

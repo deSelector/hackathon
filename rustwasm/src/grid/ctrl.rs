@@ -22,6 +22,8 @@ pub struct Grid {
     id: String,
     schema: Schema,
     col_count: u32,
+    pub left: u32,
+    pub top: u32,
     pub width: u32,
     pub height: u32,
     pub data_width: u32,
@@ -42,7 +44,14 @@ impl Grid {
 
     pub fn render(&self, data: &[f64]) {
         let ctx = &ctx(&self.id);
-        let mut grid = GridCore::new(ctx, self.width, self.height, self.data_width);
+        let mut grid = GridCore::new(
+            ctx,
+            self.left,
+            self.top,
+            self.width,
+            self.height,
+            self.data_width,
+        );
         grid.col_count = self.col_count;
         grid.row_count = grid.calc_row_count(data);
         grid.draw_gridlines();
@@ -82,7 +91,7 @@ impl Grid {
 
                 for i in 0..self.schema.cols.len() {
                     let c = &self.schema.cols[i];
-                    let x = grid.left() + self.cell_x(grid, i);
+                    let x = grid.left() + grid.cell_x(i);
                     let v = grid
                         .cell_value(data, r as i32, c.data_offset)
                         .unwrap_or_default();
@@ -105,7 +114,7 @@ impl Grid {
     fn render_header(&self, grid: &GridCore) {
         let col_width = grid.cell_width();
         for i in 0..self.schema.cols.len() {
-            let x = grid.left() + self.cell_x(grid, i);
+            let x = grid.left() + grid.cell_x(i);
             grid.fill_text_aligned(
                 self.schema.cols[i].name.as_str(),
                 x,
@@ -130,10 +139,6 @@ impl Grid {
             }
             _ => value.to_string(),
         }
-    }
-
-    fn cell_x(&self, grid: &GridCore, index: usize) -> f64 {
-        index as f64 * grid.cell_width()
     }
 
     fn cell_precision(&self, col: &Column) -> usize {
