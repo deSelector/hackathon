@@ -60,7 +60,7 @@ impl DOB {
         DATA_WIDTH
     }
 
-    pub fn paint(&self, bids: &[f64], asks: &[f64]) {
+    pub fn render(&self, bids: &[f64], asks: &[f64]) {
         let ctx = &ctx(&self.id);
         let mut grid = GridCore::new(ctx, self.width, self.height, DATA_WIDTH);
 

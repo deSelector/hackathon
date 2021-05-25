@@ -52,7 +52,7 @@ export function DOBComponent(props: DOBComponentProps) {
       grid.height = size.height;
       const data_width = wasm.DOB.get_data_width(); // todo: remove later
       const { bids, asks } = generateDOBData(data_width);
-      grid.paint(bids, asks);
+      grid.render(bids, asks);
     }
   };
 

@@ -52,7 +52,7 @@ impl Grid {
         DATA_WIDTH
     }
 
-    pub fn paint(&self, trades: &[f64]) {
+    pub fn render(&self, trades: &[f64]) {
         let ctx = &ctx(&self.id);
         let mut grid = GridCore::new(ctx, self.width, self.height, DATA_WIDTH);
         grid.col_count = self.col_count;
@@ -60,7 +60,7 @@ impl Grid {
         grid.draw_gridlines();
 
         grid.clip_begin();
-        self.render(&grid, trades);
+        self.do_render(&grid, trades);
         grid.clip_end();
     }
 
@@ -73,7 +73,7 @@ impl Grid {
 }
 
 impl Grid {
-    fn render(&self, grid: &GridCore, data: &[f64]) {
+    fn do_render(&self, grid: &GridCore, data: &[f64]) {
         let row_count = (data.len() / DATA_WIDTH as usize) as u32;
         let col_width = grid.cell_width();
 
