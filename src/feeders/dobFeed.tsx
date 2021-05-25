@@ -1,5 +1,5 @@
 import { fill } from "../context";
-import { Schema } from "../core";
+import { ColumnType, Schema } from "../core";
 
 let bid_buffer: ArrayBuffer;
 let ask_buffer: ArrayBuffer;
@@ -16,8 +16,8 @@ interface Quote {
 
 export const dobSchema: Schema = {
   cols: [
-    { id: 1, name: "Col 1" },
-    { id: 2, name: "Col 2" },
+    { id: 1, name: "Size", col_type: ColumnType.Number, data_offset: 0 },
+    { id: 2, name: "Price", col_type: ColumnType.Number, data_offset: 1 },
   ],
 };
 

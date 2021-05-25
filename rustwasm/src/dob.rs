@@ -17,8 +17,6 @@ macro_rules! _console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
-const DATA_WIDTH: u32 = 4; // price, size, cumSize, time
-
 #[derive(PartialEq, Copy, Clone)]
 pub enum Side {
     Bid = 0,
@@ -42,6 +40,7 @@ pub struct DOB {
     col_count: u32,
     pub width: u32,
     pub height: u32,
+    pub data_width: u32,
 }
 
 #[wasm_bindgen]
@@ -52,17 +51,14 @@ impl DOB {
             id,
             width,
             height,
+            data_width: 1,
             ..Default::default()
         }
     }
 
-    pub fn get_data_width() -> u32 {
-        DATA_WIDTH
-    }
-
     pub fn render(&self, bids: &[f64], asks: &[f64]) {
         let ctx = &ctx(&self.id);
-        let mut grid = GridCore::new(ctx, self.width, self.height, DATA_WIDTH);
+        let mut grid = GridCore::new(ctx, self.width, self.height, self.data_width);
 
         grid.col_count = self.col_count * 2;
         grid.assert_data_source(bids);
@@ -78,7 +74,7 @@ impl DOB {
 
     pub fn set_schema(&mut self, obj: &JsValue) {
         console_error_panic_hook::set_once();
-        self.schema = obj.into_serde::<Schema>().unwrap();
+        self.schema = obj.into_serde::<Schema>().unwrap_or_default();
         _console_log!("SCHEMA: {:?}, el={:?}", obj, self.schema);
         self.col_count = self.schema.cols.len() as u32;
     }
@@ -86,7 +82,7 @@ impl DOB {
 
 impl DOB {
     fn draw_book_side(&self, grid: &GridCore, data: &[f64], side: Side) {
-        let row_count = (data.len() / DATA_WIDTH as usize) as u32;
+        let row_count = (data.len() / self.data_width as usize) as u32;
         let col_width = grid.cell_width();
         let dx = self.start_x(grid, side);
         let align = self.cell_align(side);
@@ -133,7 +129,7 @@ impl DOB {
     }
 
     fn draw_cumulative_side(&self, grid: &GridCore, data: &[f64], side: Side, ratio: f64) {
-        let row_count = (data.len() / DATA_WIDTH as usize) as u32;
+        let row_count = (data.len() / self.data_width as usize) as u32;
         if row_count <= 0 {
             return;
         }
@@ -180,7 +176,11 @@ impl DOB {
     fn last_row_value(&self, grid: &GridCore, data: &[f64], field: Field) -> f64 {
         match data.len() {
             len if len > 0 => grid
-                .cell_value(data, (len as i32 / DATA_WIDTH as i32) - 1, field as u32)
+                .cell_value(
+                    data,
+                    (len as i32 / self.data_width as i32) - 1,
+                    field as u32,
+                )
                 .unwrap_or_default(),
             _ => 0.0,
         }

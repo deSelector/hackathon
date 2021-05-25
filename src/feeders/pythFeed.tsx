@@ -1,5 +1,5 @@
 import { fill } from "../context";
-import { Schema } from "../core";
+import { ColumnType, Schema } from "../core";
 import { init, priceMap } from "./pythBridge";
 
 let data_buffer = new ArrayBuffer(0);
@@ -7,6 +7,7 @@ let raw_data = new Map<string, Block>();
 let last_update: number = 0;
 
 interface Block {
+  name: string;
   price: number;
   confidence: number;
   time: number;
@@ -14,17 +15,19 @@ interface Block {
 
 export const blockSchema: Schema = {
   cols: [
-    { id: 1, name: "Price" },
-    { id: 2, name: "Diff" },
-    { id: 3, name: "Time" },
+    { id: 1, name: "Name", col_type: ColumnType.String, data_offset: 0 },
+    { id: 2, name: "Price", col_type: ColumnType.Number, data_offset: 1 },
+    { id: 3, name: "Confidence", col_type: ColumnType.Number, data_offset: 2 },
+    { id: 4, name: "Time", col_type: ColumnType.Timestamp, data_offset: 3 },
   ],
 };
 
 export async function generateBlockData(
   data_width: number
 ): Promise<Float64Array> {
-  const item = (price: number, confidence: number = 0) =>
+  const item = (name: string, price: number, confidence: number = 0) =>
     ({
+      name,
       price,
       confidence,
       time: Date.now(),
@@ -35,7 +38,7 @@ export async function generateBlockData(
 
   Array.from(priceMap.values())
     .filter((p) => p.time > last_update)
-    .map((p) => raw_data.set(p.symbol, item(p.price, p.confidence)));
+    .map((p) => raw_data.set(p.symbol, item(p.symbol, p.price, p.confidence)));
 
   last_update = Date.now();
   const data = Array.from(raw_data.values());
@@ -51,10 +54,12 @@ export async function generateBlockData(
     (data: Block, col: number) => {
       switch (col) {
         case 0:
-          return data.price;
+          return data.name.charCodeAt(0);
         case 1:
-          return data.confidence;
+          return data.price;
         case 2:
+          return data.confidence;
+        case 3:
           return data.time;
         default:
           return 0;

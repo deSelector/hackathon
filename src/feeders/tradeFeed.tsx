@@ -1,5 +1,5 @@
 import { fill } from "../context";
-import { Schema } from "../core";
+import { ColumnType, Schema } from "../core";
 
 let trade_buffer: ArrayBuffer;
 let raw_data: Trade[];
@@ -15,9 +15,9 @@ interface Trade {
 
 export const tradeSchema: Schema = {
   cols: [
-    { id: 1, name: "Col 1" },
-    { id: 2, name: "Col 2" },
-    { id: 3, name: "Col 3" },
+    { id: 1, name: "Price", col_type: ColumnType.Number, data_offset: 0 },
+    { id: 2, name: "Size", col_type: ColumnType.Number, data_offset: 1 },
+    { id: 3, name: "Time", col_type: ColumnType.Timestamp, data_offset: 2 },
   ],
 };
 

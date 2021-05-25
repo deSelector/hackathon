@@ -32,8 +32,8 @@ export function SolanaComponent(props: SolanaComponentProps) {
     if (grid) {
       grid.width = size.width;
       grid.height = size.height;
-      const data_width = wasm.Grid.get_data_width(); // todo: remove later
-      const data = await generateBlockData(data_width);
+      grid.data_width = 4; // todo: 4
+      const data = await generateBlockData(4); // todo: 4
       grid.render(data);
     }
   };

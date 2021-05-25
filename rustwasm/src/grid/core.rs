@@ -41,7 +41,7 @@ impl<'a> GridCore<'a> {
 
     pub fn cell_value(&self, data: &[f64], row: i32, col: u32) -> Option<f64> {
         match row {
-            row if row >= 0 => {
+            row if row >= 0 && data.len() > 0 => {
                 let index = row * self.data_width as i32 + col as i32;
                 assert_lt!(
                     index as usize,

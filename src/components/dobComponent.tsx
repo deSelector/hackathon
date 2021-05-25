@@ -50,8 +50,8 @@ export function DOBComponent(props: DOBComponentProps) {
     if (grid) {
       grid.width = size.width;
       grid.height = size.height;
-      const data_width = wasm.DOB.get_data_width(); // todo: remove later
-      const { bids, asks } = generateDOBData(data_width);
+      grid.data_width = 4; // todo: 4
+      const { bids, asks } = generateDOBData(4); // todo: 4
       grid.render(bids, asks);
     }
   };

@@ -52,8 +52,8 @@ export function TapeComponent(props: TapeComponentProps) {
     if (grid) {
       grid.width = size.width;
       grid.height = size.height;
-      const data_width = wasm.Grid.get_data_width(); // todo: fix it - from Grid to grid!
-      const data = generateTradeData(data_width);
+      grid.data_width = 3; // todo: 3
+      const data = generateTradeData(3); // todo: 3
       grid.render(data);
     }
   };
