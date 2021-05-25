@@ -16,8 +16,20 @@ interface Quote {
 
 export const dobSchema: Schema = {
   cols: [
-    { id: 1, name: "Size", col_type: ColumnType.Number, data_offset: 0 },
-    { id: 2, name: "Price", col_type: ColumnType.Number, data_offset: 1 },
+    {
+      id: 1,
+      name: "Size",
+      col_type: ColumnType.Number,
+      data_offset: 0,
+      precision: 3,
+    },
+    {
+      id: 2,
+      name: "Price",
+      col_type: ColumnType.Number,
+      data_offset: 1,
+      precision: 5,
+    },
   ],
 };
 

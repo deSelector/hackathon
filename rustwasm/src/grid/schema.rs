@@ -30,4 +30,6 @@ pub struct Column {
     pub name: String,
     pub col_type: ColumnType,
     pub data_offset: u32,
+    #[serde(default)]
+    pub precision: u32,
 }

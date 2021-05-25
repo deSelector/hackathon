@@ -6,6 +6,7 @@ export interface Column {
     name: string;
     col_type: ColumnType;
     data_offset: number;
+    precision?: number;
 }
 
 

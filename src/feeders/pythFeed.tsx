@@ -15,10 +15,32 @@ interface Block {
 
 export const blockSchema: Schema = {
   cols: [
-    { id: 1, name: "Name", col_type: ColumnType.String, data_offset: 0 },
-    { id: 2, name: "Price", col_type: ColumnType.Number, data_offset: 1 },
-    { id: 3, name: "Confidence", col_type: ColumnType.Number, data_offset: 2 },
-    { id: 4, name: "Time", col_type: ColumnType.Timestamp, data_offset: 3 },
+    {
+      id: 1,
+      name: "Name",
+      col_type: ColumnType.String,
+      data_offset: 0,
+    },
+    {
+      id: 2,
+      name: "Price",
+      col_type: ColumnType.Number,
+      data_offset: 1,
+      precision: 5,
+    },
+    {
+      id: 3,
+      name: "Confidence",
+      col_type: ColumnType.Number,
+      data_offset: 2,
+      precision: 5,
+    },
+    {
+      id: 4,
+      name: "Time",
+      col_type: ColumnType.Timestamp,
+      data_offset: 3,
+    },
   ],
 };
 

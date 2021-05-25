@@ -88,7 +88,7 @@ impl Grid {
                         .unwrap_or_default();
 
                     grid.fill_text_aligned(
-                        &self.format_value(v, c.col_type),
+                        &self.format_value(v, c),
                         x,
                         y,
                         col_width,
@@ -119,13 +119,16 @@ impl Grid {
 }
 
 impl Grid {
-    fn format_value(&self, value: f64, col_type: ColumnType) -> String {
-        match col_type {
-            ColumnType::DateTime => Local
+    fn format_value(&self, value: f64, col: &Column) -> String {
+        match col.col_type {
+            ColumnType::DateTime | ColumnType::Timestamp | ColumnType::Date => Local
                 .timestamp(value as i64 / 1000, 0)
                 .format("%r")
                 .to_string(),
-            _ => format_args!("{:.*}", self.cell_precision(col_type), value).to_string(),
+            ColumnType::Number => {
+                format_args!("{:.*}", self.cell_precision(col), value).to_string()
+            }
+            _ => value.to_string(),
         }
     }
 
@@ -133,10 +136,9 @@ impl Grid {
         index as f64 * grid.cell_width()
     }
 
-    fn cell_precision(&self, col_type: ColumnType) -> usize {
-        match col_type {
-            ColumnType::Number => 3,
-            // Field::Size => 5,
+    fn cell_precision(&self, col: &Column) -> usize {
+        match col.col_type {
+            ColumnType::Number => col.precision as usize,
             _ => 0,
         }
     }

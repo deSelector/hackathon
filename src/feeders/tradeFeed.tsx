@@ -15,9 +15,26 @@ interface Trade {
 
 export const tradeSchema: Schema = {
   cols: [
-    { id: 1, name: "Price", col_type: ColumnType.Number, data_offset: 0 },
-    { id: 2, name: "Size", col_type: ColumnType.Number, data_offset: 1 },
-    { id: 3, name: "Time", col_type: ColumnType.Timestamp, data_offset: 2 },
+    {
+      id: 1,
+      name: "Price",
+      col_type: ColumnType.Number,
+      data_offset: 0,
+      precision: 5,
+    },
+    {
+      id: 2,
+      name: "Size",
+      col_type: ColumnType.Number,
+      data_offset: 1,
+      precision: 0,
+    },
+    {
+      id: 3,
+      name: "Time",
+      col_type: ColumnType.Timestamp,
+      data_offset: 2,
+    },
   ],
 };
 
