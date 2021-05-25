@@ -3,13 +3,14 @@ import { Schema } from "../core";
 import { init, priceMap } from "./pythBridge";
 
 let data_buffer: ArrayBuffer;
-let raw_data: Block[] = [];
+let raw_data = new Map<string, Block>();
+let last_update: number = 0;
 
 const MAX_ROW_COUNT = 50;
 
 interface Block {
-  tranCount: number;
-  slot: number;
+  price: number;
+  confidence: number;
   time: number;
 }
 
@@ -24,10 +25,10 @@ export const blockSchema: Schema = {
 export async function generateBlockData(
   data_width: number
 ): Promise<Float64Array> {
-  const item = (slot: number, tranCount: number = 0) =>
+  const item = (price: number, confidence: number = 0) =>
     ({
-      tranCount,
-      slot,
+      price,
+      confidence,
       time: Date.now(),
     } as Block);
 
@@ -36,21 +37,23 @@ export async function generateBlockData(
   // todo: move it outside of the loop?
   await init();
 
-  raw_data.length = 0;
-  Array.from(priceMap.values()).map((p) => raw_data.push(item(p.price, 0)));
+  Array.from(priceMap.values())
+    .filter((p) => p.time > last_update)
+    .map((p) => raw_data.set(p.symbol, item(p.price, p.confidence)));
 
-  raw_data = raw_data.slice(0, MAX_ROW_COUNT);
+  const data = Array.from(raw_data.values());
+  last_update = Date.now();
 
   return fill<Block>(
     data_buffer,
-    raw_data,
+    data,
     data_width,
     (data: Block, col: number) => {
       switch (col) {
         case 0:
-          return data.slot;
+          return data.price;
         case 1:
-          return data.tranCount;
+          return data.confidence;
         case 2:
           return data.time;
         default:

@@ -52,15 +52,15 @@ impl Grid {
         DATA_WIDTH
     }
 
-    pub fn render(&self, trades: &[f64]) {
+    pub fn render(&self, data: &[f64]) {
         let ctx = &ctx(&self.id);
         let mut grid = GridCore::new(ctx, self.width, self.height, DATA_WIDTH);
         grid.col_count = self.col_count;
-        grid.assert_data_source(trades);
+        grid.assert_data_source(data);
         grid.draw_gridlines();
 
         grid.clip_begin();
-        self.do_render(&grid, trades);
+        self.do_render(&grid, data);
         grid.clip_end();
     }
 

@@ -13,6 +13,7 @@ export interface ProductPrice {
     symbol: string;
     price: number;
     confidence: number;
+    time: number;
 }
 
 const setPrice = (symbol: string, buffer: Buffer) => {
@@ -22,7 +23,8 @@ const setPrice = (symbol: string, buffer: Buffer) => {
     priceMap.set(symbol, {
         symbol,
         price,
-        confidence
+        confidence,
+        time: Date.now(),
     });
 }
 
