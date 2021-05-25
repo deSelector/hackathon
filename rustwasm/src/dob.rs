@@ -100,10 +100,7 @@ impl DOB {
                         .cell_value(data, r as i32, field as u32)
                         .unwrap_or_default();
 
-                    grid.draw_highlight(
-                        x,
-                        y,
-                        col_width,
+                    let hi = grid.is_highlight(
                         grid.cell_value(data, r as i32, Field::Time as u32)
                             .unwrap_or_default(),
                     );
@@ -113,6 +110,7 @@ impl DOB {
                         y,
                         col_width,
                         align,
+                        Some(hi),
                     );
                 }
             } else {

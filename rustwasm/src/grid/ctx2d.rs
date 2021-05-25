@@ -24,15 +24,26 @@ pub fn fill_text_aligned(
     width: f64,
     height: f64,
     text_align: &str,
+    highlight: Option<bool>,
 ) {
     const PADDING_H: f64 = 10.0;
     let dy = y + height / 2.0;
     set_text_align(ctx, text_align);
+
+    if highlight.unwrap() {
+        ctx.save();
+        set_fill_style(ctx, "white");
+    }
+
     match text_align {
         "right" => ctx.fill_text(v, x + width - PADDING_H, dy).unwrap(),
         "center" => ctx.fill_text(v, x + width / 2.0, dy).unwrap(),
         _ => ctx.fill_text(v, x + PADDING_H, dy).unwrap(),
     };
+
+    if highlight.unwrap() {
+        ctx.restore();
+    }
 }
 
 pub fn horizontal_line(ctx: &CanvasRenderingContext2d, left: f64, right: f64, y: f64) {

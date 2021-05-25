@@ -85,14 +85,19 @@ impl Grid {
                     let v = grid
                         .cell_value(data, r as i32, field as u32)
                         .unwrap_or_default();
-                    grid.draw_highlight(
-                        x,
-                        y,
-                        col_width,
+
+                    let hi = grid.is_highlight(
                         grid.cell_value(data, r as i32, Field::Time as u32)
                             .unwrap_or_default(),
                     );
-                    grid.fill_text_aligned(&self.format_value(v, field), x, y, col_width, "right");
+                    grid.fill_text_aligned(
+                        &self.format_value(v, field),
+                        x,
+                        y,
+                        col_width,
+                        "right",
+                        Some(hi),
+                    );
                 }
             } else {
                 break;

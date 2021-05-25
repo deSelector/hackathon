@@ -4,7 +4,7 @@ use super::ctx2d::*;
 use js_sys::Date;
 use web_sys::CanvasRenderingContext2d;
 
-const HIGHLIGHT_DURATION: i64 = 250;
+const HIGHLIGHT_DURATION: i64 = 100;
 const ROW_HEIGHT: u32 = 30;
 const MARGIN: u32 = 0;
 
@@ -115,6 +115,11 @@ impl<'a> GridCore<'a> {
         ctx.stroke();
     }
 
+    pub fn is_highlight(&self, time: f64) -> bool {
+        let now = Date::new_0().get_time() as i64;
+        now - time as i64 <= HIGHLIGHT_DURATION
+    }
+
     pub fn draw_highlight(&self, x: f64, y: f64, width: f64, time: f64) {
         let ctx = self.get_ctx();
         let now = Date::new_0().get_time() as i64;
@@ -125,7 +130,15 @@ impl<'a> GridCore<'a> {
         }
     }
 
-    pub fn fill_text_aligned(&self, text: &str, x: f64, y: f64, width: f64, align: &str) {
+    pub fn fill_text_aligned(
+        &self,
+        text: &str,
+        x: f64,
+        y: f64,
+        width: f64,
+        align: &str,
+        highlight: Option<bool>,
+    ) {
         fill_text_aligned(
             self.get_ctx(),
             text,
@@ -134,6 +147,7 @@ impl<'a> GridCore<'a> {
             width,
             self.row_height.into(),
             align,
+            highlight,
         );
     }
 }
