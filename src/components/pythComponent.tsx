@@ -4,15 +4,15 @@ import { useRustWasm } from "../hooks";
 import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 
-import { blockSchema, generateBlockData } from "./../feeders";
+import { blockSchema, generateBlockData } from "../feeders";
 
 const UPDATE_FREQ = 50;
 
-export interface SolanaComponentProps {
+export interface PythComponentProps {
   id?: string;
 }
 
-export function SolanaComponent(props: SolanaComponentProps) {
+export function PythComponent(props: PythComponentProps) {
   const [id] = useState<string>(props.id ?? "block-canvas");
   const [freq] = useState<number>(UPDATE_FREQ);
   const [grid, setGrid] = useState<any>(null);

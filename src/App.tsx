@@ -1,6 +1,6 @@
 import "./index.scss";
 import { useInitRustWasm } from "./hooks";
-import { DOBComponent, TapeComponent, SolanaComponent } from "./components";
+import { DOBComponent, TapeComponent, PythComponent } from "./components";
 import { DataProvider } from "./context";
 
 function App() {
@@ -11,7 +11,7 @@ function App() {
       <GridContext.Provider value={wasm}>
         <div className="app">
           <div id="left-panel">
-            <SolanaComponent />
+            <PythComponent />
           </div>
           <div id="right-panel">
             <DOBComponent />
