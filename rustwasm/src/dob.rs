@@ -3,7 +3,6 @@ use crate::grid::ctx2d::*;
 use crate::grid::schema::Schema;
 
 use crate::utils::*;
-use enum_iterator::IntoEnumIterator;
 use std::f64;
 use wasm_bindgen::prelude::*;
 
@@ -23,21 +22,12 @@ enum Side {
     Ask = 1,
 }
 
-// todo; remove
-#[derive(PartialEq, Copy, Clone, IntoEnumIterator)]
-pub enum Field {
-    Price = 0,
-    Size = 1,
-    CumSize = 2,
-    Time = 3,
-}
-
 #[wasm_bindgen]
 #[derive(Default)]
 pub struct DOB {
     id: String,
-    schema: Schema,
-    col_count: u32,
+    bid_schema: Schema,
+    ask_schema: Schema,
     pub width: u32,
     pub height: u32,
     pub data_width: u32,
@@ -63,6 +53,7 @@ impl DOB {
             GridCore::new(ctx, 0, 0, self.width / 2, self.height, self.data_width),
             bids,
             Side::Bid,
+            &self.bid_schema,
         );
         let mut right = (
             GridCore::new(
@@ -75,59 +66,63 @@ impl DOB {
             ),
             asks,
             Side::Ask,
+            &self.ask_schema,
         );
 
         let ratio = self.calc_bid_side_ratio(&left.0, &left.1, &right.0, &right.1);
 
-        for (grid, data, side) in [&mut left, &mut right].iter_mut() {
-            grid.col_count = self.schema.cols.len() as u32;
+        for (grid, data, side, schema) in [&mut left, &mut right].iter_mut() {
+            grid.col_count = 2; // schema.cols.len() as u32;
             grid.assert_data_source(data);
             grid.draw_gridlines();
 
             grid.clip_begin();
-            self.render_book(grid, data, *side);
+            self.render_book(grid, data, schema, *side);
             self.render_pyramid(grid, data, *side, ratio);
             grid.clip_end();
         }
     }
 
-    pub fn set_schema(&mut self, obj: &JsValue) {
+    pub fn set_schema(&mut self, bid: &JsValue, ask: &JsValue) {
         console_error_panic_hook::set_once();
-        self.schema = obj.into_serde::<Schema>().unwrap_or_default();
-        _console_log!("SCHEMA: {:?}, el={:?}", obj, self.schema);
-        self.col_count = self.schema.cols.len() as u32;
+        self.bid_schema = bid.into_serde::<Schema>().unwrap_or_default();
+        self.ask_schema = ask.into_serde::<Schema>().unwrap_or_default();
     }
 }
 
 impl DOB {
-    fn render_book(&self, grid: &GridCore, data: &[f64], side: Side) {
+    fn render_book(&self, grid: &GridCore, data: &[f64], schema: &Schema, side: Side) {
         let row_count = (data.len() / self.data_width as usize) as u32;
         let col_width = grid.cell_width();
         let dx = grid.left();
 
-        let align = self.cell_align(side);
+        let align = self.cell_align(side); // todo: add align to schema and remove
 
         for r in 0.. {
             let y = grid.top() + (r * grid.row_height) as f64;
             if y < grid.bottom() as f64 && r < row_count {
-                for &field in [Field::Price, Field::Size].iter() {
-                    let x = dx + grid.cell_x(field as usize);
-                    let v = grid
-                        .cell_value(data, r as i32, field as u32)
-                        .unwrap_or_default();
+                let mut i = 0;
+                for c in &schema.cols {
+                    if !c.hidden {
+                        let x = dx + grid.cell_x(i);
+                        let v = grid
+                            .cell_value(data, r as i32, c.data_offset)
+                            .unwrap_or_default();
 
-                    let hi = grid.is_highlight(
-                        grid.cell_value(data, r as i32, Field::Time as u32)
-                            .unwrap_or_default(),
-                    );
-                    grid.fill_text_aligned(
-                        &format_args!("{:.*}", self.cell_precision(field), v).to_string(),
-                        x,
-                        y,
-                        col_width,
-                        align,
-                        hi,
-                    );
+                        let hi = grid.is_highlight(
+                            grid.cell_value(data, r as i32, 3 /*Field::Time as u32*/)
+                                .unwrap_or_default(),
+                        );
+                        grid.fill_text_aligned(
+                            &format_args!("{:.*}", c.precision as usize, v).to_string(),
+                            x,
+                            y,
+                            col_width,
+                            align,
+                            hi,
+                        );
+                        i += 1;
+                    }
                 }
             } else {
                 break;
@@ -167,7 +162,7 @@ impl DOB {
             let y = grid.top() + (r * grid.row_height) as f64;
             if y < grid.bottom() as f64 && r < row_count {
                 let len = grid
-                    .cell_value(data, r as i32, Field::CumSize as u32)
+                    .cell_value(data, r as i32, 2 /*Field::CumSize as u32*/)
                     .unwrap_or_default()
                     * ratio;
                 let x = match side {
@@ -195,15 +190,6 @@ impl DOB {
         match side {
             Side::Bid => "right",
             Side::Ask => "left",
-        }
-    }
-
-    // todo: remove once we switch to schema
-    fn cell_precision(&self, field: Field) -> usize {
-        match field {
-            Field::Price => 3,
-            Field::Size => 5,
-            _ => 0,
         }
     }
 }

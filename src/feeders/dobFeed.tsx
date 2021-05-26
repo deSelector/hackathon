@@ -1,5 +1,5 @@
 import { fill } from "../context";
-import { ColumnType, Schema } from "../core";
+import { Column, ColumnType, Schema } from "../core";
 
 let bid_buffer: ArrayBuffer;
 let ask_buffer: ArrayBuffer;
@@ -14,23 +14,44 @@ interface Quote {
   time: number;
 }
 
-export const dobSchema: Schema = {
-  cols: [
-    {
-      id: 1,
-      name: "Size",
-      col_type: ColumnType.Number,
-      data_offset: 0,
-      precision: 3,
-    },
-    {
-      id: 2,
-      name: "Price",
-      col_type: ColumnType.Number,
-      data_offset: 1,
-      precision: 5,
-    },
-  ],
+const sizeCol = {
+  id: 1,
+  name: "Size",
+  col_type: ColumnType.Number,
+  data_offset: 1,
+  precision: 3,
+} as Column;
+
+const priceCol = {
+  id: 2,
+  name: "Price",
+  col_type: ColumnType.Number,
+  data_offset: 0,
+  precision: 5,
+} as Column;
+
+const cumSizeCol = {
+  id: 2,
+  name: "CumSize",
+  col_type: ColumnType.Number,
+  data_offset: 2,
+  precision: 0,
+  hidden: true,
+} as Column;
+
+const timeCol = {
+  id: 2,
+  name: "Time",
+  col_type: ColumnType.Timestamp,
+  data_offset: 3,
+  hidden: true,
+} as Column;
+
+export const bidSchema: Schema = {
+  cols: [sizeCol, priceCol, cumSizeCol, timeCol],
+};
+export const askSchema: Schema = {
+  cols: [priceCol, sizeCol, cumSizeCol, timeCol],
 };
 
 export function generateDOBData(data_width: number): {

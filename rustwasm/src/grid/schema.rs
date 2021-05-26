@@ -32,4 +32,6 @@ pub struct Column {
     pub data_offset: u32,
     #[serde(default)]
     pub precision: u32,
+    #[serde(default)]
+    pub hidden: bool,
 }

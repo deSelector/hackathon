@@ -7,6 +7,7 @@ export interface Column {
     col_type: ColumnType;
     data_offset: number;
     precision?: number;
+    hidden?: boolean;
 }
 
 

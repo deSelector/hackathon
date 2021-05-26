@@ -5,7 +5,7 @@ import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 import classnames from "classnames";
 // import { useDataContext } from "../context";
-import { dobSchema, generateDOBData } from "../feeders";
+import { bidSchema, askSchema, generateDOBData } from "../feeders";
 
 const frequencies = [0, 50, 100, 250, 500, 750, 1000, 10000];
 
@@ -28,7 +28,7 @@ export function DOBComponent(props: DOBComponentProps) {
   const wasm = useRustWasm();
   if (wasm && !grid) {
     const g = wasm.DOB.new(id, size.width, size.height);
-    g.set_schema(dobSchema);
+    g.set_schema(bidSchema, askSchema);
     setGrid(g);
   }
 
