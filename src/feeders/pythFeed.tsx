@@ -13,33 +13,40 @@ interface PythQuote {
   time: number;
 }
 
+enum DataOffset {
+  price = 0,
+  confidence = 1,
+  time = 2,
+  name = 3,
+}
+
 export const pythSchema: Schema = {
   cols: [
     {
       id: 1,
       name: "Name",
       col_type: ColumnType.String,
-      data_offset: 0,
+      data_offset: DataOffset.name,
     },
     {
       id: 2,
       name: "Price",
       col_type: ColumnType.Number,
-      data_offset: 1,
+      data_offset: DataOffset.price,
       precision: 5,
     },
     {
       id: 3,
       name: "Confidence",
       col_type: ColumnType.Number,
-      data_offset: 2,
+      data_offset: DataOffset.confidence,
       precision: 5,
     },
     {
       id: 4,
       name: "Time",
       col_type: ColumnType.Timestamp,
-      data_offset: 3,
+      data_offset: DataOffset.time,
     },
   ],
 };
@@ -73,18 +80,18 @@ export async function generatePythData(
     data_buffer,
     data,
     data_width,
-    (data: PythQuote, col: number) => {
+    (data: PythQuote, col: DataOffset) => {
       switch (col) {
-        case 0:
+        case DataOffset.name:
           return data.name.charCodeAt(0);
-        case 1:
+        case DataOffset.price:
           return data.price;
-        case 2:
+        case DataOffset.confidence:
           return data.confidence;
-        case 3:
+        case DataOffset.time:
           return data.time;
         default:
-          return 0;
+          throw new Error(`DataOffset unsupported: ${col}`);
       }
     }
   );
