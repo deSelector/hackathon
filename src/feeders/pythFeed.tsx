@@ -3,7 +3,7 @@ import { ColumnType, Schema } from "../core";
 import { init, priceMap } from "./pythBridge";
 
 let data_buffer = new ArrayBuffer(0);
-let raw_data = new Map<string, PythQuote>();
+let quotes = new Map<string, PythQuote>();
 let last_update: number = 0;
 
 interface PythQuote {
@@ -27,6 +27,7 @@ export const pythSchema: Schema = {
       name: "Name",
       col_type: ColumnType.String,
       data_offset: DataOffset.name,
+      data_width: 1,
     },
     {
       id: 2,
@@ -51,9 +52,7 @@ export const pythSchema: Schema = {
   ],
 };
 
-export async function generatePythData(
-  data_width: number
-): Promise<Float64Array> {
+export async function generatePythData(): Promise<[Float64Array, number]> {
   const item = (name: string, price: number, confidence: number = 0) =>
     ({
       name,
@@ -67,19 +66,23 @@ export async function generatePythData(
 
   Array.from(priceMap.values())
     .filter((p) => p.time > last_update)
-    .map((p) => raw_data.set(p.symbol, item(p.symbol, p.price, p.confidence)));
+    .map((p) => quotes.set(p.symbol, item(p.symbol, p.price, p.confidence)));
 
-  last_update = Date.now();
-  const data = Array.from(raw_data.values());
-  const size = raw_data.size * data_width * 8;
+  const data_width = pythSchema.cols.reduce(
+    (p, c) => (p += c.data_width ?? 1),
+    0
+  );
+  const data = Array.from(quotes.values());
+  const size = quotes.size * data_width * 8;
   if (data_buffer.byteLength < size) {
     data_buffer = new ArrayBuffer(size);
   }
 
-  return fill<PythQuote>(
+  last_update = Date.now();
+  const array = fill<PythQuote>(
     data_buffer,
     data,
-    data_width,
+    pythSchema.cols.length,
     (data: PythQuote, col: DataOffset) => {
       switch (col) {
         case DataOffset.name:
@@ -95,4 +98,5 @@ export async function generatePythData(
       }
     }
   );
+  return [array, data_width];
 }

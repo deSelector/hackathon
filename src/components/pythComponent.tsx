@@ -30,10 +30,10 @@ export function PythComponent(props: PythComponentProps) {
 
   const tick = async () => {
     if (grid) {
+      const [data, data_width] = await generatePythData();
       grid.width = size.width;
       grid.height = size.height;
-      grid.data_width = 4; // todo: 4
-      const data = await generatePythData(4); // todo: 4
+      grid.data_width = data_width;
       grid.render(data);
     }
   };

@@ -13,12 +13,6 @@ pub enum ColumnType {
     Timestamp,
 }
 
-impl Default for ColumnType {
-    fn default() -> Self {
-        ColumnType::Default
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Schema {
     pub cols: Vec<Column>,
@@ -30,8 +24,20 @@ pub struct Column {
     pub name: String,
     pub col_type: ColumnType,
     pub data_offset: u32,
+    #[serde(default = "default_data_width")]
+    pub data_width: u32,
     #[serde(default)]
     pub precision: u32,
     #[serde(default)]
     pub hidden: bool,
+}
+
+impl Default for ColumnType {
+    fn default() -> Self {
+        ColumnType::Default
+    }
+}
+
+fn default_data_width() -> u32 {
+    1
 }
