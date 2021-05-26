@@ -69,7 +69,7 @@ impl DOB {
             &self.ask_schema,
         );
 
-        let ratio = self.calc_bid_side_ratio(&left.0, &left.1, &right.0, &right.1);
+        let ratio = self.calc_bid_side_ratio(&left.1, &right.1, left.0.client_width());
 
         for (grid, data, side, schema) in [&mut left, &mut right].iter_mut() {
             grid.col_count = 2; // schema.cols.len() as u32;
@@ -130,23 +130,17 @@ impl DOB {
         }
     }
 
-    fn calc_bid_side_ratio(
-        &self,
-        left_grid: &GridCore,
-        left_data: &[f64],
-        right_grid: &GridCore,
-        right_data: &[f64],
-    ) -> f64 {
+    fn calc_bid_side_ratio(&self, left_data: &[f64], right_data: &[f64], client_width: f64) -> f64 {
         let max_cumulative_value = std::cmp::max(
-            left_grid.last_row_value(left_data, 2 /*Field::CumSize*/) as u32,
-            right_grid.last_row_value(right_data, 2 /*Field::CumSize*/) as u32,
+            self.last_row_value(left_data, 2 /*Field::CumSize*/) as u32,
+            self.last_row_value(right_data, 2 /*Field::CumSize*/) as u32,
         ) as f64;
 
-        if max_cumulative_value > 0.0 {
-            left_grid.client_width() / max_cumulative_value / 2.0
+        return if max_cumulative_value > 0.0 {
+            client_width / max_cumulative_value / 2.0
         } else {
             0.0
-        }
+        };
     }
 
     fn render_pyramid(&self, grid: &GridCore, data: &[f64], side: Side, ratio: f64) {
@@ -191,5 +185,10 @@ impl DOB {
             Side::Bid => "right",
             Side::Ask => "left",
         }
+    }
+
+    fn last_row_value(&self, data: &[f64], col: u32) -> f64 {
+        let row_count = (data.len() / self.data_width as usize) as u32;
+        GridCore::value(data, row_count as i32 - 1, col, self.data_width).unwrap_or_default()
     }
 }
