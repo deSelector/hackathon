@@ -3,17 +3,17 @@ import { ColumnType, Schema } from "../core";
 import { init, priceMap } from "./pythBridge";
 
 let data_buffer = new ArrayBuffer(0);
-let raw_data = new Map<string, Block>();
+let raw_data = new Map<string, PythQuote>();
 let last_update: number = 0;
 
-interface Block {
+interface PythQuote {
   name: string;
   price: number;
   confidence: number;
   time: number;
 }
 
-export const blockSchema: Schema = {
+export const pythSchema: Schema = {
   cols: [
     {
       id: 1,
@@ -44,7 +44,7 @@ export const blockSchema: Schema = {
   ],
 };
 
-export async function generateBlockData(
+export async function generatePythData(
   data_width: number
 ): Promise<Float64Array> {
   const item = (name: string, price: number, confidence: number = 0) =>
@@ -53,7 +53,7 @@ export async function generateBlockData(
       price,
       confidence,
       time: Date.now(),
-    } as Block);
+    } as PythQuote);
 
   // todo: move it outside of the loop?
   await init();
@@ -69,11 +69,11 @@ export async function generateBlockData(
     data_buffer = new ArrayBuffer(size);
   }
 
-  return fill<Block>(
+  return fill<PythQuote>(
     data_buffer,
     data,
     data_width,
-    (data: Block, col: number) => {
+    (data: PythQuote, col: number) => {
       switch (col) {
         case 0:
           return data.name.charCodeAt(0);

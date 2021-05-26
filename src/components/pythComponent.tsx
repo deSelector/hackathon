@@ -4,7 +4,7 @@ import { useRustWasm } from "../hooks";
 import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 
-import { blockSchema, generateBlockData } from "../feeders";
+import { pythSchema, generatePythData } from "../feeders";
 
 const UPDATE_FREQ = 50;
 
@@ -13,7 +13,7 @@ export interface PythComponentProps {
 }
 
 export function PythComponent(props: PythComponentProps) {
-  const [id] = useState<string>(props.id ?? "block-canvas");
+  const [id] = useState<string>(props.id ?? "pyth-canvas");
   const [freq] = useState<number>(UPDATE_FREQ);
   const [grid, setGrid] = useState<any>(null);
   const [size, setSize] = useState<{ width?: number; height?: number }>({
@@ -24,7 +24,7 @@ export function PythComponent(props: PythComponentProps) {
   const wasm = useRustWasm();
   if (wasm && !grid) {
     const g = wasm.Grid.new(id, size.width, size.height);
-    g.set_schema(blockSchema);
+    g.set_schema(pythSchema);
     setGrid(g);
   }
 
@@ -33,7 +33,7 @@ export function PythComponent(props: PythComponentProps) {
       grid.width = size.width;
       grid.height = size.height;
       grid.data_width = 4; // todo: 4
-      const data = await generateBlockData(4); // todo: 4
+      const data = await generatePythData(4); // todo: 4
       grid.render(data);
     }
   };
