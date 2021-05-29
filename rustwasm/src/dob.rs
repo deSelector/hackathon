@@ -1,6 +1,6 @@
 use crate::grid::core::*;
 use crate::grid::ctx2d::*;
-use crate::grid::schema::Schema;
+use crate::grid::schema::*;
 
 use crate::utils::*;
 use std::f64;
@@ -106,11 +106,11 @@ impl DOB {
                     if !c.hidden {
                         let x = dx + grid.cell_x(i);
                         let v = grid
-                            .cell_value(data, r as i32, c.data_offset)
+                            .cell_value_f64(data, r as i32, c.data_offset)
                             .unwrap_or_default();
 
                         let hi = grid.is_highlight(
-                            grid.cell_value(data, r as i32, 3 /*Field::Time as u32*/)
+                            grid.cell_value_f64(data, r as i32, 3 /*Field::Time as u32*/)
                                 .unwrap_or_default(),
                         );
                         grid.fill_text_aligned(
@@ -132,8 +132,8 @@ impl DOB {
 
     fn calc_bid_side_ratio(&self, left_data: &[f64], right_data: &[f64], client_width: f64) -> f64 {
         let max_cumulative_value = std::cmp::max(
-            self.last_row_value(left_data, 2 /*Field::CumSize*/) as u32,
-            self.last_row_value(right_data, 2 /*Field::CumSize*/) as u32,
+            self.get_max_cum_size(left_data) as u32,
+            self.get_max_cum_size(right_data) as u32,
         ) as f64;
 
         return if max_cumulative_value > 0.0 {
@@ -156,7 +156,7 @@ impl DOB {
             let y = grid.top() + (r * grid.row_height) as f64;
             if y < grid.bottom() as f64 && r < row_count {
                 let len = grid
-                    .cell_value(data, r as i32, 2 /*Field::CumSize as u32*/)
+                    .cell_value_f64(data, r as i32, 2 /*Field::CumSize as u32*/)
                     .unwrap_or_default()
                     * ratio;
                 let x = match side {
@@ -187,8 +187,10 @@ impl DOB {
         }
     }
 
-    fn last_row_value(&self, data: &[f64], col: u32) -> f64 {
+    fn get_max_cum_size(&self, data: &[f64]) -> f64 {
+        let col_data_offset = 2; /*Field::CumSize*/
         let row_count = (data.len() / self.data_width as usize) as u32;
-        GridCore::value(data, row_count as i32 - 1, col, self.data_width).unwrap_or_default()
+        GridCore::get_value_f64(data, row_count as i32 - 1, col_data_offset, self.data_width)
+            .unwrap_or_default()
     }
 }

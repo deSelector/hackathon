@@ -45,26 +45,38 @@ impl<'a> GridCore<'a> {
         }
     }
 
-    pub fn value(data: &[f64], row: i32, col: u32, data_width: u32) -> Option<f64> {
+    pub fn cell_index(&self, row: i32, col_data_offset: u32) -> i32 {
+        GridCore::get_cell_index(row, col_data_offset, self.data_width)
+    }
+
+    pub fn get_cell_index(row: i32, col_data_offset: u32, data_width: u32) -> i32 {
+        row * data_width as i32 + col_data_offset as i32
+    }
+
+    pub fn get_value_f64(
+        data: &[f64],
+        row: i32,
+        col_data_offset: u32,
+        data_width: u32,
+    ) -> Option<f64> {
         match row {
             row if row >= 0 && data.len() > 0 => {
-                let index = row * data_width as i32 + col as i32;
-                assert_lt!(
-                    index as usize,
-                    data.len(),
-                    "buffer index {} out of bounds {}",
-                    index,
-                    data.len()
-                );
+                let index = GridCore::get_cell_index(row, col_data_offset, data_width);
+                GridCore::assert_index(data, index);
                 return Some(data[index as usize]);
             }
             _ => None,
         }
     }
 
-    pub fn cell_value(&self, data: &[f64], row: i32, col: u32) -> Option<f64> {
-        GridCore::value(data, row, col, self.data_width)
+    pub fn cell_value_f64(&self, data: &[f64], row: i32, col_data_offset: u32) -> Option<f64> {
+        GridCore::get_value_f64(data, row, col_data_offset, self.data_width)
     }
+
+    // fn get_value_str(data: &[f64], cell_index: u32) -> Option<&str> {
+    //     Some("hello")
+    // }
+
     pub fn cell_x(&self, index: usize) -> f64 {
         index as f64 * self.cell_width()
     }
@@ -217,6 +229,16 @@ impl<'a> GridCore<'a> {
             "buffer size {} not divisible by {}",
             data.len(),
             self.data_width
+        );
+    }
+
+    fn assert_index(data: &[f64], index: i32) {
+        assert_lt!(
+            index as usize,
+            data.len(),
+            "buffer index {} out of bounds {}",
+            index,
+            data.len()
         );
     }
 

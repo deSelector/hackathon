@@ -74,15 +74,15 @@ impl Grid {
     fn render_data(&self, grid: &GridCore, data: &[f64]) {
         let row_count = (data.len() / self.data_width as usize) as u32;
         let col_width = grid.cell_width();
-        let ts_offset = self.ts_col_offset();
+        let time_offset = self.timestamp_offset().unwrap_or_default();
 
         for r in 0.. {
             let y = grid.top() + ((r + HEADER_LINES) * grid.row_height) as f64;
 
             if y < grid.bottom() as f64 && r < row_count {
-                let highlight = if ts_offset.is_some() {
+                let highlight = if time_offset > 0 {
                     grid.is_highlight(
-                        grid.cell_value(data, r as i32, ts_offset.unwrap())
+                        grid.cell_value_f64(data, r as i32, time_offset)
                             .unwrap_or_default(),
                     )
                 } else {
@@ -93,7 +93,7 @@ impl Grid {
                     let c = &self.schema.cols[i];
                     let x = grid.left() + grid.cell_x(i);
                     let v = grid
-                        .cell_value(data, r as i32, c.data_offset)
+                        .cell_value_f64(data, r as i32, c.data_offset)
                         .unwrap_or_default();
 
                     grid.fill_text_aligned(
@@ -148,7 +148,7 @@ impl Grid {
         }
     }
 
-    fn ts_col_offset(&self) -> Option<u32> {
+    fn timestamp_offset(&self) -> Option<u32> {
         let col = self
             .schema
             .cols
