@@ -19,7 +19,6 @@ const sizeCol = {
   name: "Size",
   col_type: ColumnType.Number,
   data_offset: 8,
-  data_len: 8,
   precision: 3,
 } as Column;
 
@@ -28,7 +27,6 @@ const priceCol = {
   name: "Price",
   col_type: ColumnType.Number,
   data_offset: 0,
-  data_len: 8,
   precision: 5,
 } as Column;
 
@@ -37,8 +35,6 @@ const cumSizeCol = {
   name: "CumSize",
   col_type: ColumnType.Number,
   data_offset: 16,
-  data_len: 8,
-  precision: 0,
   hidden: true,
 } as Column;
 
@@ -47,7 +43,6 @@ const timeCol = {
   name: "Time",
   col_type: ColumnType.Timestamp,
   data_offset: 24,
-  data_len: 8,
   hidden: true,
 } as Column;
 

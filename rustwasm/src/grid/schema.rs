@@ -1,12 +1,12 @@
 #![allow(dead_code)]
-use crate::grid::core::SZ;
+use crate::grid::core::*;
 use serde::{Deserialize, Serialize};
 use serde_repr::*;
 
 #[derive(Debug, PartialEq, Serialize_repr, Deserialize_repr, Copy, Clone)]
 #[repr(u32)]
 pub enum ColumnType {
-    Default = 0,
+    None = 0,
     String,
     Number,
     Date,
@@ -25,7 +25,7 @@ pub struct Column {
     pub name: String,
     pub col_type: ColumnType,
     pub data_offset: u32,
-    #[serde(default = "num_value_width")]
+    #[serde(default = "num_size")]
     pub data_len: usize,
     #[serde(default)]
     pub precision: u32,
@@ -35,10 +35,15 @@ pub struct Column {
 
 impl Default for ColumnType {
     fn default() -> Self {
-        ColumnType::Default
+        ColumnType::Number
     }
 }
 
-pub const fn num_value_width() -> usize {
-    std::mem::size_of::<f64>()
+pub fn assert_schema(schema: &Schema) {
+    for col in &schema.cols {
+        assert!(col.id > 0);
+        // ensure data size is defined for string columns
+        assert!(col.col_type != ColumnType::String || col.data_len > 0);
+        assert!(col.col_type == ColumnType::String || col.data_len == num_size())
+    }
 }

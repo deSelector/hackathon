@@ -1,5 +1,6 @@
-use crate::grid::core::*;
-use crate::grid::schema::*;
+use super::core::*;
+use super::ds::*;
+use super::schema::*;
 use crate::utils::*;
 use chrono::prelude::*;
 use chrono::Local;
@@ -26,7 +27,6 @@ pub struct Grid {
     pub top: u32,
     pub width: u32,
     pub height: u32,
-    pub data_width: u32,
 }
 
 #[wasm_bindgen]
@@ -37,27 +37,19 @@ impl Grid {
             id,
             width,
             height,
-            data_width: 1,
             ..Default::default()
         }
     }
 
-    pub fn render(&self, data: &[SZ]) {
+    pub fn render(&self, data: &[SZ], data_width: u32) {
         let ctx = &ctx(&self.id);
-        let mut grid = GridCore::new(
-            ctx,
-            self.left,
-            self.top,
-            self.width,
-            self.height,
-            self.data_width,
-        );
+        let ds = &DataSource::new(data, data_width);
+        let mut grid = GridCore::new(ctx, self.left, self.top, self.width, self.height);
         grid.col_count = self.col_count;
-        grid.row_count = grid.calc_row_count(data);
-        grid.draw_gridlines();
+        grid.draw_gridlines(ds);
 
         grid.clip_begin();
-        self.render_data(&grid, data);
+        self.render_data(&grid, ds);
         self.render_header(&grid);
         grid.clip_end();
     }
@@ -66,22 +58,22 @@ impl Grid {
         console_error_panic_hook::set_once();
         self.schema = obj.into_serde::<Schema>().unwrap_or_default();
         _console_log!("SCHEMA: {:?}, el={:?}", obj, self.schema);
+        assert_schema(&self.schema);
         self.col_count = self.schema.cols.len() as u32;
     }
 }
 
 impl Grid {
-    fn render_data(&self, grid: &GridCore, data: &[SZ]) {
-        let row_count = (data.len() / self.data_width as usize) as u32;
+    fn render_data(&self, grid: &GridCore, ds: &DataSource) {
         let time_offset = self.timestamp_offset().unwrap_or_default();
 
         for r in 0.. {
             let y = grid.top() + ((r + HEADER_LINES) * grid.row_height) as f64;
 
-            if y < grid.bottom() as f64 && r < row_count {
+            if y < grid.bottom() as f64 && r < ds.row_count {
                 let highlight = if time_offset > 0 {
                     grid.is_highlight(
-                        grid.cell_value_f64(data, r as i32, time_offset)
+                        grid.cell_value_f64(ds, r as i32, time_offset)
                             .unwrap_or_default(),
                     )
                 } else {
@@ -92,7 +84,7 @@ impl Grid {
                     let c = &self.schema.cols[i];
                     let x = grid.left() + grid.cell_x(i);
 
-                    self.fill_text_formatted(grid, data, r, x, y, c, highlight);
+                    self.fill_text_formatted(grid, ds, r, x, y, c, highlight);
                 }
             } else {
                 break;
@@ -152,7 +144,7 @@ impl Grid {
     fn fill_text_formatted(
         &self,
         grid: &GridCore,
-        data: &[SZ],
+        ds: &DataSource,
         r: u32,
         x: f64,
         y: f64,
@@ -165,12 +157,12 @@ impl Grid {
         let v = match c.col_type {
             ColumnType::String => {
                 align = "left";
-                grid.cell_value_str(data, r as i32, c.data_offset, c.data_len)
+                grid.cell_value_str(ds, r as i32, c.data_offset, c.data_len)
                     .unwrap_or("?".to_string())
             }
             _ => {
                 let val = grid
-                    .cell_value_f64(data, r as i32, c.data_offset)
+                    .cell_value_f64(ds, r as i32, c.data_offset)
                     .unwrap_or_default();
                 self.format_value(val, c)
             }

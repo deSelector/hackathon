@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use rustwasm::grid::schema::num_value_width;
+    use rustwasm::grid::core::*;
     //use super::*;
     use byteorder::{BigEndian, ByteOrder};
 
@@ -15,7 +15,7 @@ mod tests {
 
     #[test]
     fn test_f64_to_u8_slice() {
-        let mut buf = [0u8; num_value_width() as usize];
+        let mut buf = [0u8; num_size() as usize];
         BigEndian::write_f64(&mut buf, 1000.0);
         assert_eq!(buf, [64, 143, 64, 0, 0, 0, 0, 0]);
     }

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use super::ctx2d::*;
-use crate::grid::schema::num_value_width;
+use super::ds::*;
 use byteorder::{BigEndian, ByteOrder};
 use js_sys::Date;
 use wasm_bindgen::prelude::*;
@@ -23,6 +23,10 @@ macro_rules! _console_log {
 
 pub type SZ = u8;
 
+pub const fn num_size() -> usize {
+    std::mem::size_of::<f64>()
+}
+
 #[derive(Default)]
 pub struct GridCore<'a> {
     ctx: Option<&'a CanvasRenderingContext2d>,
@@ -32,9 +36,7 @@ pub struct GridCore<'a> {
     height: u32,
     pub row_height: u32,
     pub col_count: u32,
-    pub row_count: u32,
     pub margin: u32,
-    data_width: u32,
 }
 
 impl<'a> GridCore<'a> {
@@ -44,7 +46,6 @@ impl<'a> GridCore<'a> {
         top: u32,
         width: u32,
         height: u32,
-        data_width: u32,
     ) -> GridCore {
         GridCore {
             ctx: Some(ctx),
@@ -53,55 +54,45 @@ impl<'a> GridCore<'a> {
             width,
             height,
             row_height: ROW_HEIGHT,
-            data_width,
             margin: MARGIN,
             ..Default::default()
         }
     }
 
-    pub fn cell_index(&self, row: i32, col_data_offset: u32) -> i32 {
-        GridCore::get_cell_index(row, col_data_offset, self.data_width)
+    pub fn get_cell_index(ds: &DataSource, row: i32, col_data_offset: u32) -> i32 {
+        row * ds.data_width as i32 + col_data_offset as i32
     }
 
-    pub fn get_cell_index(row: i32, col_data_offset: u32, data_width: u32) -> i32 {
-        row * data_width as i32 + col_data_offset as i32
-    }
-
-    pub fn get_value_f64(
-        data: &[SZ],
-        row: i32,
-        col_data_offset: u32,
-        data_width: u32,
-    ) -> Option<f64> {
+    pub fn get_value_f64(ds: &DataSource, row: i32, col_data_offset: u32) -> Option<f64> {
         match row {
-            row if row >= 0 && data.len() > 0 => {
-                let index = GridCore::get_cell_index(row, col_data_offset, data_width);
-                GridCore::assert_index(data, index);
-                let x =
-                    BigEndian::read_f64(&data[index as usize..index as usize + num_value_width()]);
-                return Some(x);
+            row if row >= 0 && ds.data.len() > 0 => {
+                let index = GridCore::get_cell_index(ds, row, col_data_offset);
+                GridCore::assert_index(ds, index);
+                // note: potential performance impact - verify.
+                let v = BigEndian::read_f64(&ds.data[index as usize..index as usize + num_size()]);
+                Some(v)
             }
             _ => None,
         }
     }
 
-    pub fn cell_value_f64(&self, data: &[SZ], row: i32, col_data_offset: u32) -> Option<f64> {
-        GridCore::get_value_f64(data, row, col_data_offset, self.data_width)
+    pub fn cell_value_f64(&self, ds: &DataSource, row: i32, col_data_offset: u32) -> Option<f64> {
+        GridCore::get_value_f64(ds, row, col_data_offset)
     }
 
     pub fn cell_value_str(
         &self,
-        data: &[SZ],
+        ds: &DataSource,
         row: i32,
         col_data_offset: u32,
         col_data_len: usize,
     ) -> Option<String> {
         match row {
-            row if row >= 0 && row < self.row_count as i32 => {
-                let index = GridCore::get_cell_index(row, col_data_offset, self.data_width);
-                //GridCore::assert_index(data, index);
+            row if row >= 0 && row < ds.row_count as i32 => {
+                let index = GridCore::get_cell_index(ds, row, col_data_offset);
+                GridCore::assert_index(ds, index);
                 let start = index as usize;
-                let str_slice = &data[start..start + col_data_len as usize]; // todo
+                let str_slice = &ds.data[start..start + col_data_len as usize]; // todo
                 let s = String::from_utf8_lossy(str_slice);
                 return Some(s.to_string());
             }
@@ -137,7 +128,7 @@ impl<'a> GridCore<'a> {
         set_text_baseline(ctx, "middle");
     }
 
-    pub fn draw_gridlines(&self) {
+    pub fn draw_gridlines(&self, ds: &DataSource) {
         let ctx = self.get_ctx();
         self.clear();
 
@@ -158,7 +149,7 @@ impl<'a> GridCore<'a> {
         let mut j = 0;
         loop {
             let y = self.top() + (j * self.row_height) as f64;
-            if y < self.bottom() && j <= self.row_count + HEADER_LINES {
+            if y < self.bottom() && j <= ds.row_count + HEADER_LINES {
                 horizontal_line(ctx, self.left(), self.right(), y);
                 j += 1;
             } else {
@@ -254,27 +245,13 @@ impl<'a> GridCore<'a> {
         clip_end(self.get_ctx());
     }
 
-    pub fn assert_data_source(&self, data: &[SZ]) {
-        assert_eq!(
-            data.len() as f64 % self.data_width as f64,
-            0.0,
-            "buffer size {} not divisible by {}",
-            data.len(),
-            self.data_width
-        );
-    }
-
-    fn assert_index(data: &[SZ], index: i32) {
+    fn assert_index(ds: &DataSource, index: i32) {
         assert_lt!(
             index as usize,
-            data.len(),
+            ds.data.len(),
             "buffer index {} out of bounds {}",
             index,
-            data.len()
+            ds.data.len()
         );
-    }
-
-    pub fn calc_row_count(&self, data: &[SZ]) -> u32 {
-        data.len() as u32 / self.data_width // todo: why u32?
     }
 }

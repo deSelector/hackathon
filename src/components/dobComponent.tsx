@@ -51,8 +51,7 @@ export function DOBComponent(props: DOBComponentProps) {
       const { bids, asks, data_width } = generateDOBData();
       grid.width = size.width;
       grid.height = size.height;
-      grid.data_width = data_width;
-      grid.render(bids, asks);
+      grid.render(bids, asks, data_width);
     }
   };
 

@@ -33,8 +33,7 @@ export function PythComponent(props: PythComponentProps) {
       const [data, data_width] = await generatePythData();
       grid.width = size.width;
       grid.height = size.height;
-      grid.data_width = data_width;
-      grid.render(data);
+      grid.render(data, data_width);
     }
   };
 

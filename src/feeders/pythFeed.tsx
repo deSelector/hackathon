@@ -19,14 +19,13 @@ export const pythSchema: Schema = {
       name: "Name",
       col_type: ColumnType.String,
       data_offset: 24,
-      data_len: 20,
+      data_len: 10,
     },
     {
       id: 2,
       name: "Price",
       col_type: ColumnType.Number,
       data_offset: 0,
-      data_len: 8,
       precision: 5,
     },
     {
@@ -34,14 +33,12 @@ export const pythSchema: Schema = {
       name: "Confidence",
       col_type: ColumnType.Number,
       data_offset: 8,
-      data_len: 8,
       precision: 5,
     },
     {
       id: 4,
       name: "Time",
       col_type: ColumnType.Timestamp,
-      data_len: 8,
       data_offset: 16,
     },
   ],
@@ -64,7 +61,7 @@ export async function generatePythData(): Promise<[Int8Array, number]> {
     .map((p) => quoteMap.set(p.symbol, item(p.symbol, p.price, p.confidence)));
 
   const data_width = calcDataWidth(pythSchema);
-  let quotes = Array.from(quoteMap.values());
+  const quotes = Array.from(quoteMap.values());
   const size = quotes.length * data_width;
   if (data_buffer.byteLength < size) {
     data_buffer = new ArrayBuffer(size);
@@ -81,7 +78,7 @@ export async function generatePythData(): Promise<[Int8Array, number]> {
       switch (col.id) {
         case 1:
           return new TextEncoder().encode(
-            data.name.substring(0, col.data_len ?? 1)
+            data.name.substring(0, col.data_len ?? 0 + 1)
           );
 
         case 2:

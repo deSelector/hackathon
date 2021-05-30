@@ -1,5 +1,5 @@
 import { fill } from "../context";
-import { Column, ColumnType, Schema } from "../core";
+import { calcDataWidth, Column, ColumnType, Schema } from "../core";
 
 let trade_buffer: ArrayBuffer;
 let raw_data: Trade[];
@@ -20,7 +20,6 @@ export const tradeSchema: Schema = {
       name: "Price",
       col_type: ColumnType.Number,
       data_offset: 0,
-      data_len: 8,
       precision: 5,
     },
     {
@@ -28,14 +27,11 @@ export const tradeSchema: Schema = {
       name: "Size",
       col_type: ColumnType.Number,
       data_offset: 8,
-      data_len: 8,
-      precision: 0,
     },
     {
       id: 3,
       name: "Time",
       col_type: ColumnType.Timestamp,
-      data_len: 8,
       data_offset: 16,
     },
   ],
@@ -49,10 +45,7 @@ export function generateTradeData(): [Int8Array, number] {
       time: Date.now(),
     } as Trade);
 
-  const data_width = tradeSchema.cols.reduce(
-    (p, c) => (p += c.data_len ?? 1),
-    0
-  );
+  const data_width = calcDataWidth(tradeSchema);
 
   if (!raw_data) {
     trade_buffer = trade_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width);

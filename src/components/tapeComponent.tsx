@@ -53,8 +53,7 @@ export function TapeComponent(props: TapeComponentProps) {
       const [data, data_width] = generateTradeData();
       grid.width = size.width;
       grid.height = size.height;
-      grid.data_width = data_width;
-      grid.render(data);
+      grid.render(data, data_width);
     }
   };
 

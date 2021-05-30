@@ -1,6 +1,7 @@
-use crate::grid::core::*;
-use crate::grid::ctx2d::*;
-use crate::grid::schema::*;
+use super::grid::core::*;
+use super::grid::ctx2d::*;
+use super::grid::ds::*;
+use super::grid::schema::*;
 
 use crate::utils::*;
 use std::f64;
@@ -30,7 +31,6 @@ pub struct DOB {
     ask_schema: Schema,
     pub width: u32,
     pub height: u32,
-    pub data_width: u32,
 }
 
 #[wasm_bindgen]
@@ -41,44 +41,35 @@ impl DOB {
             id,
             width,
             height,
-            data_width: 1,
             ..Default::default()
         }
     }
 
-    pub fn render(&self, bids: &[SZ], asks: &[SZ]) {
+    pub fn render(&self, bids: &[SZ], asks: &[SZ], data_width: u32) {
         let ctx = &ctx(&self.id);
 
         let mut left = (
-            GridCore::new(ctx, 0, 0, self.width / 2, self.height, self.data_width),
-            bids,
+            GridCore::new(ctx, 0, 0, self.width / 2, self.height),
+            DataSource::new(bids, data_width),
             Side::Bid,
             &self.bid_schema,
         );
         let mut right = (
-            GridCore::new(
-                ctx,
-                self.width / 2 + 1,
-                0,
-                self.width / 2,
-                self.height,
-                self.data_width,
-            ),
-            asks,
+            GridCore::new(ctx, self.width / 2 + 1, 0, self.width / 2, self.height),
+            DataSource::new(asks, data_width),
             Side::Ask,
             &self.ask_schema,
         );
 
         let ratio = self.calc_bid_side_ratio(&left.1, &right.1, left.0.client_width());
 
-        for (grid, data, side, schema) in [&mut left, &mut right].iter_mut() {
+        for (grid, ds, side, schema) in [&mut left, &mut right].iter_mut() {
             grid.col_count = 2; // schema.cols.len() as u32;
-            grid.assert_data_source(data);
-            grid.draw_gridlines();
+            grid.draw_gridlines(&ds);
 
             grid.clip_begin();
-            self.render_book(grid, data, schema, *side);
-            self.render_pyramid(grid, data, *side, ratio);
+            self.render_book(grid, ds, schema, *side);
+            self.render_pyramid(grid, ds, *side, ratio);
             grid.clip_end();
         }
     }
@@ -91,8 +82,7 @@ impl DOB {
 }
 
 impl DOB {
-    fn render_book(&self, grid: &GridCore, data: &[SZ], schema: &Schema, side: Side) {
-        let row_count = (data.len() / self.data_width as usize) as u32;
+    fn render_book(&self, grid: &GridCore, ds: &DataSource, schema: &Schema, side: Side) {
         let col_width = grid.cell_width();
         let dx = grid.left();
 
@@ -100,17 +90,17 @@ impl DOB {
 
         for r in 0.. {
             let y = grid.top() + (r * grid.row_height) as f64;
-            if y < grid.bottom() as f64 && r < row_count {
+            if y < grid.bottom() as f64 && r < ds.row_count {
                 let mut i = 0;
                 for c in &schema.cols {
                     if !c.hidden {
                         let x = dx + grid.cell_x(i);
                         let v = grid
-                            .cell_value_f64(data, r as i32, c.data_offset)
+                            .cell_value_f64(ds, r as i32, c.data_offset)
                             .unwrap_or_default();
 
                         let hi = grid.is_highlight(
-                            grid.cell_value_f64(data, r as i32, 3 /*Field::Time as u32*/)
+                            grid.cell_value_f64(ds, r as i32, 3 /*Field::Time as u32*/)
                                 .unwrap_or_default(),
                         );
                         grid.fill_text_aligned(
@@ -130,10 +120,15 @@ impl DOB {
         }
     }
 
-    fn calc_bid_side_ratio(&self, left_data: &[SZ], right_data: &[SZ], client_width: f64) -> f64 {
+    fn calc_bid_side_ratio(
+        &self,
+        left_ds: &DataSource,
+        right_ds: &DataSource,
+        client_width: f64,
+    ) -> f64 {
         let max_cumulative_value = std::cmp::max(
-            self.get_max_cum_size(left_data) as u32,
-            self.get_max_cum_size(right_data) as u32,
+            self.get_max_cum_size(left_ds) as u32,
+            self.get_max_cum_size(right_ds) as u32,
         ) as f64;
 
         return if max_cumulative_value > 0.0 {
@@ -143,9 +138,8 @@ impl DOB {
         };
     }
 
-    fn render_pyramid(&self, grid: &GridCore, data: &[SZ], side: Side, ratio: f64) {
-        let row_count = (data.len() / self.data_width as usize) as u32;
-        if row_count <= 0 {
+    fn render_pyramid(&self, grid: &GridCore, ds: &DataSource, side: Side, ratio: f64) {
+        if ds.row_count == 0 {
             return;
         }
 
@@ -154,9 +148,9 @@ impl DOB {
 
         for r in 0.. {
             let y = grid.top() + (r * grid.row_height) as f64;
-            if y < grid.bottom() as f64 && r < row_count {
+            if y < grid.bottom() as f64 && r < ds.row_count {
                 let len = grid
-                    .cell_value_f64(data, r as i32, 2 /*Field::CumSize as u32*/)
+                    .cell_value_f64(ds, r as i32, 2 /*Field::CumSize as u32*/)
                     .unwrap_or_default()
                     * ratio;
                 let x = match side {
@@ -187,10 +181,8 @@ impl DOB {
         }
     }
 
-    fn get_max_cum_size(&self, data: &[SZ]) -> f64 {
+    fn get_max_cum_size(&self, ds: &DataSource) -> f64 {
         let col_data_offset = 2; /*Field::CumSize*/
-        let row_count = (data.len() / self.data_width as usize) as u32;
-        GridCore::get_value_f64(data, row_count as i32 - 1, col_data_offset, self.data_width)
-            .unwrap_or_default()
+        GridCore::get_value_f64(ds, ds.row_count as i32 - 1, col_data_offset).unwrap_or_default()
     }
 }
