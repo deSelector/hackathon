@@ -33,6 +33,7 @@ export async function init(): Promise<any> {
     if (!pending) {
         let start = performance.now();
         console.log(`BRIDGE: initializing`);
+
         try {
             pending = conn.getAccountInfo(ORACLE_MAPPING_PUBLIC_KEY);
             const mapping = await pending;

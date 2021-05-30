@@ -1,13 +1,23 @@
 #![allow(dead_code)]
-
 use super::ctx2d::*;
 use js_sys::Date;
+use wasm_bindgen::prelude::*;
 use web_sys::CanvasRenderingContext2d;
 
 pub const HEADER_LINES: u32 = 1;
 const HIGHLIGHT_DURATION: i64 = 100;
 const ROW_HEIGHT: u32 = 30;
 const MARGIN: u32 = 0;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
+macro_rules! _console_log {
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
 
 #[derive(Default)]
 pub struct GridCore<'a> {
@@ -73,9 +83,17 @@ impl<'a> GridCore<'a> {
         GridCore::get_value_f64(data, row, col_data_offset, self.data_width)
     }
 
-    // fn get_value_str(data: &[f64], cell_index: u32) -> Option<&str> {
-    //     Some("hello")
-    // }
+    pub fn cell_value_str(&self, data: &[f64], row: i32, col_data_offset: u32) -> Option<String> {
+        match row {
+            row if row >= 0 && data.len() > 0 => {
+                let index = GridCore::get_cell_index(row, col_data_offset, self.data_width);
+                GridCore::assert_index(data, index);
+
+                return Some("world".to_string());
+            }
+            _ => None,
+        }
+    }
 
     pub fn cell_x(&self, index: usize) -> f64 {
         index as f64 * self.cell_width()
