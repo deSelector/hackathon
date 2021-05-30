@@ -100,6 +100,7 @@
         "build": "wasm-pack build rustwasm && webpack --mode=production",
         "test": "node scripts/test.js",
         "test:wasm": "wasm-pack test --chrome --headless rustwasm",
+        "test:rust": "cargo test --tests --package rustwasm --manifest-path ./rustwasm/Cargo.toml",
         "build:wasm": "wasm-pack build rustwasm",
         "build:dev": "webpack --mode=development",
         "build:prod": "webpack --mode=production",
