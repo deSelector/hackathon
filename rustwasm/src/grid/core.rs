@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 use super::ctx2d::*;
+use crate::grid::schema::num_value_width;
+use byteorder::{BigEndian, ByteOrder};
 use js_sys::Date;
 use wasm_bindgen::prelude::*;
 use web_sys::CanvasRenderingContext2d;
@@ -18,6 +20,8 @@ extern "C" {
 macro_rules! _console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
+
+pub type SZ = u8;
 
 #[derive(Default)]
 pub struct GridCore<'a> {
@@ -64,7 +68,7 @@ impl<'a> GridCore<'a> {
     }
 
     pub fn get_value_f64(
-        data: &[f64],
+        data: &[SZ],
         row: i32,
         col_data_offset: u32,
         data_width: u32,
@@ -73,23 +77,33 @@ impl<'a> GridCore<'a> {
             row if row >= 0 && data.len() > 0 => {
                 let index = GridCore::get_cell_index(row, col_data_offset, data_width);
                 GridCore::assert_index(data, index);
-                return Some(data[index as usize]);
+                let x =
+                    BigEndian::read_f64(&data[index as usize..index as usize + num_value_width()]);
+                return Some(x);
             }
             _ => None,
         }
     }
 
-    pub fn cell_value_f64(&self, data: &[f64], row: i32, col_data_offset: u32) -> Option<f64> {
+    pub fn cell_value_f64(&self, data: &[SZ], row: i32, col_data_offset: u32) -> Option<f64> {
         GridCore::get_value_f64(data, row, col_data_offset, self.data_width)
     }
 
-    pub fn cell_value_str(&self, data: &[f64], row: i32, col_data_offset: u32) -> Option<String> {
+    pub fn cell_value_str(
+        &self,
+        data: &[SZ],
+        row: i32,
+        col_data_offset: u32,
+        col_data_len: usize,
+    ) -> Option<String> {
         match row {
-            row if row >= 0 && data.len() > 0 => {
+            row if row >= 0 && row < self.row_count as i32 => {
                 let index = GridCore::get_cell_index(row, col_data_offset, self.data_width);
-                GridCore::assert_index(data, index);
-
-                return Some("world".to_string());
+                //GridCore::assert_index(data, index);
+                let start = index as usize;
+                let str_slice = &data[start..start + col_data_len as usize]; // todo
+                let s = String::from_utf8_lossy(str_slice);
+                return Some(s.to_string());
             }
             _ => None,
         }
@@ -240,7 +254,7 @@ impl<'a> GridCore<'a> {
         clip_end(self.get_ctx());
     }
 
-    pub fn assert_data_source(&self, data: &[f64]) {
+    pub fn assert_data_source(&self, data: &[SZ]) {
         assert_eq!(
             data.len() as f64 % self.data_width as f64,
             0.0,
@@ -250,7 +264,7 @@ impl<'a> GridCore<'a> {
         );
     }
 
-    fn assert_index(data: &[f64], index: i32) {
+    fn assert_index(data: &[SZ], index: i32) {
         assert_lt!(
             index as usize,
             data.len(),
@@ -260,7 +274,7 @@ impl<'a> GridCore<'a> {
         );
     }
 
-    pub fn calc_row_count(&self, data: &[f64]) -> u32 {
-        data.len() as u32 / self.data_width
+    pub fn calc_row_count(&self, data: &[SZ]) -> u32 {
+        data.len() as u32 / self.data_width // todo: why u32?
     }
 }

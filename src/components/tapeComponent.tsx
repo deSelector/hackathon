@@ -50,10 +50,10 @@ export function TapeComponent(props: TapeComponentProps) {
 
   const tick = () => {
     if (grid) {
+      const [data, data_width] = generateTradeData();
       grid.width = size.width;
       grid.height = size.height;
-      grid.data_width = 3; // todo: 3
-      const data = generateTradeData(3); // todo: 3
+      grid.data_width = data_width;
       grid.render(data);
     }
   };

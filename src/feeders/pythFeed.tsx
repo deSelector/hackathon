@@ -1,4 +1,4 @@
-import { Column, ColumnType, Schema } from "../core";
+import { calcDataWidth, Column, ColumnType, NUM_SIZE, Schema } from "../core";
 import { init, priceMap } from "./pythBridge";
 
 let data_buffer = new ArrayBuffer(0);
@@ -18,33 +18,36 @@ export const pythSchema: Schema = {
       id: 1,
       name: "Name",
       col_type: ColumnType.String,
-      data_offset: 3,
-      data_width: 8,
+      data_offset: 24,
+      data_len: 20,
     },
     {
       id: 2,
       name: "Price",
       col_type: ColumnType.Number,
       data_offset: 0,
+      data_len: 8,
       precision: 5,
     },
     {
       id: 3,
       name: "Confidence",
       col_type: ColumnType.Number,
-      data_offset: 1,
+      data_offset: 8,
+      data_len: 8,
       precision: 5,
     },
     {
       id: 4,
       name: "Time",
       col_type: ColumnType.Timestamp,
-      data_offset: 2,
+      data_len: 8,
+      data_offset: 16,
     },
   ],
 };
 
-export async function generatePythData(): Promise<[Float64Array, number]> {
+export async function generatePythData(): Promise<[Int8Array, number]> {
   const item = (name: string, price: number, confidence: number = 0) =>
     ({
       name,
@@ -60,12 +63,9 @@ export async function generatePythData(): Promise<[Float64Array, number]> {
     .filter((p) => p.time > last_update)
     .map((p) => quoteMap.set(p.symbol, item(p.symbol, p.price, p.confidence)));
 
-  const data_width = pythSchema.cols.reduce(
-    (p, c) => (p += c.data_width ?? 1),
-    0
-  );
-  const quotes = Array.from(quoteMap.values());
-  const size = quoteMap.size * data_width * 8;
+  const data_width = calcDataWidth(pythSchema);
+  let quotes = Array.from(quoteMap.values());
+  const size = quotes.length * data_width;
   if (data_buffer.byteLength < size) {
     data_buffer = new ArrayBuffer(size);
   }
@@ -81,7 +81,7 @@ export async function generatePythData(): Promise<[Float64Array, number]> {
       switch (col.id) {
         case 1:
           return new TextEncoder().encode(
-            data.name.substring(0, col.data_width ?? 1)
+            data.name.substring(0, col.data_len ?? 1)
           );
 
         case 2:
@@ -101,20 +101,29 @@ export async function generatePythData(): Promise<[Float64Array, number]> {
 
 export function fill<T>(
   buffer: ArrayBuffer,
-  data: T[],
+  quotes: T[],
   data_width: number,
   columns: Column[],
   getter: (data: T, col: Column) => number | Uint8Array
-): Float64Array {
-  const array = new Float64Array(buffer, 0, data.length * data_width);
-  for (let r = 0, index = 0; r < data.length; r++, index += data_width) {
-    const row_data = data[r];
+): Int8Array {
+  const array = new Int8Array(buffer, 0, quotes.length * data_width);
+  const view = new DataView(array.buffer);
+
+  for (let r = 0, index = 0, dx = 0; r < quotes.length; r++, index += dx) {
+    const row_data = quotes[r];
+    dx = 0;
     for (let col of columns) {
       const v = getter(row_data, col);
       if (typeof v === "number") {
-        array[index + col.data_offset] = v;
+        view.setFloat64(index + col.data_offset, v);
+        dx += NUM_SIZE;
       } else {
+        console.assert(
+          v.length <= (col.data_len || 0),
+          `data size too large, max: ${col.data_len}`
+        );
         array.set(v, index + col.data_offset);
+        dx += col.data_len ?? 0;
       }
     }
   }

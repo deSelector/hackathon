@@ -48,10 +48,10 @@ export function DOBComponent(props: DOBComponentProps) {
 
   const tick = () => {
     if (grid) {
+      const { bids, asks, data_width } = generateDOBData();
       grid.width = size.width;
       grid.height = size.height;
-      grid.data_width = 4; // todo: 4
-      const { bids, asks } = generateDOBData(4); // todo: 4
+      grid.data_width = data_width;
       grid.render(bids, asks);
     }
   };

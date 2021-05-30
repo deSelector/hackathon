@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+use crate::grid::core::SZ;
 use serde::{Deserialize, Serialize};
 use serde_repr::*;
 
@@ -24,8 +25,8 @@ pub struct Column {
     pub name: String,
     pub col_type: ColumnType,
     pub data_offset: u32,
-    #[serde(default = "default_data_width")]
-    pub data_width: u32,
+    #[serde(default = "num_value_width")]
+    pub data_len: usize,
     #[serde(default)]
     pub precision: u32,
     #[serde(default)]
@@ -38,6 +39,6 @@ impl Default for ColumnType {
     }
 }
 
-fn default_data_width() -> u32 {
-    1
+pub const fn num_value_width() -> usize {
+    std::mem::size_of::<f64>()
 }

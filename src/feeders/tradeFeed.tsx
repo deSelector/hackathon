@@ -1,5 +1,5 @@
 import { fill } from "../context";
-import { ColumnType, Schema } from "../core";
+import { Column, ColumnType, Schema } from "../core";
 
 let trade_buffer: ArrayBuffer;
 let raw_data: Trade[];
@@ -20,25 +20,28 @@ export const tradeSchema: Schema = {
       name: "Price",
       col_type: ColumnType.Number,
       data_offset: 0,
+      data_len: 8,
       precision: 5,
     },
     {
       id: 2,
       name: "Size",
       col_type: ColumnType.Number,
-      data_offset: 1,
+      data_offset: 8,
+      data_len: 8,
       precision: 0,
     },
     {
       id: 3,
       name: "Time",
       col_type: ColumnType.Timestamp,
-      data_offset: 2,
+      data_len: 8,
+      data_offset: 16,
     },
   ],
 };
 
-export function generateTradeData(data_width: number): Float64Array {
+export function generateTradeData(): [Int8Array, number] {
   const item = () =>
     ({
       price: +(Math.random() * 5).toFixed(3),
@@ -46,9 +49,13 @@ export function generateTradeData(data_width: number): Float64Array {
       time: Date.now(),
     } as Trade);
 
+  const data_width = tradeSchema.cols.reduce(
+    (p, c) => (p += c.data_len ?? 1),
+    0
+  );
+
   if (!raw_data) {
-    trade_buffer =
-      trade_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width * 8);
+    trade_buffer = trade_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width);
 
     raw_data = Array(
       Math.max(MIN_ROW_COUNT, Math.floor(Math.random() * MAX_ROW_COUNT))
@@ -67,21 +74,23 @@ export function generateTradeData(data_width: number): Float64Array {
 
   raw_data = raw_data.slice(0, MAX_ROW_COUNT);
 
-  return fill<Trade>(
+  const array = fill<Trade>(
     trade_buffer,
     raw_data,
     data_width,
-    (data: Trade, col: number) => {
-      switch (col) {
-        case 0:
-          return data.price;
+    tradeSchema.cols,
+    (data: Trade, col: Column) => {
+      switch (col.id) {
         case 1:
-          return data.size;
+          return data.price;
         case 2:
+          return data.size;
+        case 3:
           return data.time;
         default:
           return 0;
       }
     }
   );
+  return [array, data_width];
 }

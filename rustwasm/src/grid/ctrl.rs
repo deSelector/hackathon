@@ -42,7 +42,7 @@ impl Grid {
         }
     }
 
-    pub fn render(&self, data: &[f64]) {
+    pub fn render(&self, data: &[SZ]) {
         let ctx = &ctx(&self.id);
         let mut grid = GridCore::new(
             ctx,
@@ -71,9 +71,8 @@ impl Grid {
 }
 
 impl Grid {
-    fn render_data(&self, grid: &GridCore, data: &[f64]) {
+    fn render_data(&self, grid: &GridCore, data: &[SZ]) {
         let row_count = (data.len() / self.data_width as usize) as u32;
-        let col_width = grid.cell_width();
         let time_offset = self.timestamp_offset().unwrap_or_default();
 
         for r in 0.. {
@@ -92,18 +91,8 @@ impl Grid {
                 for i in 0..self.schema.cols.len() {
                     let c = &self.schema.cols[i];
                     let x = grid.left() + grid.cell_x(i);
-                    let v = grid
-                        .cell_value_f64(data, r as i32, c.data_offset)
-                        .unwrap_or_default();
 
-                    grid.fill_text_aligned(
-                        &self.format_value(v, c),
-                        x,
-                        y,
-                        col_width,
-                        "right",
-                        highlight,
-                    );
+                    self.fill_text_formatted(grid, data, r, x, y, c, highlight);
                 }
             } else {
                 break;
@@ -158,5 +147,35 @@ impl Grid {
             return Some(col.unwrap().data_offset);
         }
         None
+    }
+
+    fn fill_text_formatted(
+        &self,
+        grid: &GridCore,
+        data: &[SZ],
+        r: u32,
+        x: f64,
+        y: f64,
+        c: &Column,
+        highlight: bool,
+    ) {
+        let mut align = "right";
+        let col_width = grid.cell_width();
+
+        let v = match c.col_type {
+            ColumnType::String => {
+                align = "left";
+                grid.cell_value_str(data, r as i32, c.data_offset, c.data_len)
+                    .unwrap_or("?".to_string())
+            }
+            _ => {
+                let val = grid
+                    .cell_value_f64(data, r as i32, c.data_offset)
+                    .unwrap_or_default();
+                self.format_value(val, c)
+            }
+        };
+
+        grid.fill_text_aligned(&v, x, y, col_width, align, highlight);
     }
 }

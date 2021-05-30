@@ -46,7 +46,7 @@ impl DOB {
         }
     }
 
-    pub fn render(&self, bids: &[f64], asks: &[f64]) {
+    pub fn render(&self, bids: &[SZ], asks: &[SZ]) {
         let ctx = &ctx(&self.id);
 
         let mut left = (
@@ -91,7 +91,7 @@ impl DOB {
 }
 
 impl DOB {
-    fn render_book(&self, grid: &GridCore, data: &[f64], schema: &Schema, side: Side) {
+    fn render_book(&self, grid: &GridCore, data: &[SZ], schema: &Schema, side: Side) {
         let row_count = (data.len() / self.data_width as usize) as u32;
         let col_width = grid.cell_width();
         let dx = grid.left();
@@ -130,7 +130,7 @@ impl DOB {
         }
     }
 
-    fn calc_bid_side_ratio(&self, left_data: &[f64], right_data: &[f64], client_width: f64) -> f64 {
+    fn calc_bid_side_ratio(&self, left_data: &[SZ], right_data: &[SZ], client_width: f64) -> f64 {
         let max_cumulative_value = std::cmp::max(
             self.get_max_cum_size(left_data) as u32,
             self.get_max_cum_size(right_data) as u32,
@@ -143,7 +143,7 @@ impl DOB {
         };
     }
 
-    fn render_pyramid(&self, grid: &GridCore, data: &[f64], side: Side, ratio: f64) {
+    fn render_pyramid(&self, grid: &GridCore, data: &[SZ], side: Side, ratio: f64) {
         let row_count = (data.len() / self.data_width as usize) as u32;
         if row_count <= 0 {
             return;
@@ -187,7 +187,7 @@ impl DOB {
         }
     }
 
-    fn get_max_cum_size(&self, data: &[f64]) -> f64 {
+    fn get_max_cum_size(&self, data: &[SZ]) -> f64 {
         let col_data_offset = 2; /*Field::CumSize*/
         let row_count = (data.len() / self.data_width as usize) as u32;
         GridCore::get_value_f64(data, row_count as i32 - 1, col_data_offset, self.data_width)
