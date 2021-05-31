@@ -171,7 +171,14 @@ impl<'a> GridRenderer<'a> {
                 let mut index = 0;
                 for col in self.schema.unwrap().get_visible_cols() {
                     let x = self.left() + self.cell_x(index);
-                    self.render_text_formatted(ds, row, x, y, col, highlight);
+                    self.render_text_formatted(
+                        ds,
+                        row,
+                        x,
+                        y,
+                        col,
+                        highlight && col.col_type != ColumnType::String,
+                    );
                     index += 1;
                 }
             } else {
