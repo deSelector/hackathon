@@ -1,5 +1,5 @@
-use super::core::*;
 use super::ds::*;
+use super::renderer::*;
 use super::schema::*;
 use crate::utils::*;
 use wasm_bindgen::prelude::*;

@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::grid::core::*;
+use crate::grid::renderer::*;
 use chrono::prelude::*;
 use chrono::Local;
 use serde::{Deserialize, Serialize};

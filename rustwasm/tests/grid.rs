@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use rustwasm::grid::core::*;
+    use rustwasm::grid::renderer::*;
     //use super::*;
     use byteorder::{BigEndian, ByteOrder};
 

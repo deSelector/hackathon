@@ -1,4 +1,4 @@
-use crate::grid::core::*;
+use crate::grid::renderer::*;
 use crate::grid::schema::Column;
 use byteorder::{BigEndian, ByteOrder};
 
