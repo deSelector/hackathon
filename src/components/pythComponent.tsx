@@ -29,7 +29,7 @@ export function PythComponent(props: PythComponentProps) {
   const tick = async () => {
     if (grid) {
       const [data, data_width] = await generatePythData();
-      grid.render(data, data_width, size.width, size.height);
+      grid.render(data, data_width, 0, 0, size.width, size.height);
     }
   };
 

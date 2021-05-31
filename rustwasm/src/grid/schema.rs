@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 use crate::grid::core::*;
+use chrono::prelude::*;
+use chrono::Local;
 use serde::{Deserialize, Serialize};
 use serde_repr::*;
 
@@ -47,5 +49,23 @@ pub fn assert_schema(schema: &Schema) {
         // ensure data size is defined for string columns
         assert!(col.col_type != ColumnType::String || col.data_len > 0);
         assert!(col.col_type == ColumnType::String || col.data_len == num_size())
+    }
+}
+
+pub fn cell_precision(col: &Column) -> usize {
+    match col.col_type {
+        ColumnType::Number => col.precision,
+        _ => 0,
+    }
+}
+
+pub fn format_value(value: f64, col: &Column) -> String {
+    match col.col_type {
+        ColumnType::DateTime | ColumnType::Timestamp | ColumnType::Date => Local
+            .timestamp(value as i64 / 1000, 0)
+            .format("%r")
+            .to_string(),
+        ColumnType::Number => format_args!("{:.*}", cell_precision(col), value).to_string(),
+        _ => value.to_string(),
     }
 }

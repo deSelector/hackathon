@@ -3,8 +3,7 @@ use super::ctx2d::*;
 use super::ds::*;
 use crate::grid::schema::*;
 use byteorder::{BigEndian, ByteOrder};
-use chrono::prelude::*;
-use chrono::Local;
+
 use js_sys::Date;
 use std::f64;
 use wasm_bindgen::prelude::*;
@@ -66,50 +65,6 @@ impl<'a> GridCore<'a> {
         }
     }
 
-    pub fn get_cell_index(ds: &DataSource, row: usize, col: &Column) -> usize {
-        let index = row * ds.data_width + col.data_offset;
-        assert_lt!(
-            index,
-            ds.data.len(),
-            "buffer index {} out of bounds {}",
-            index,
-            ds.data.len()
-        );
-        index
-    }
-
-    pub fn get_value_f64(ds: &DataSource, row: usize, col: &Column) -> Option<f64> {
-        match row {
-            row if row < ds.row_count && ds.data.len() > 0 => {
-                let index = GridCore::get_cell_index(ds, row, col);
-                // note: potential performance impact - verify.
-                let v = BigEndian::read_f64(&ds.data[index..index + num_size()]);
-                Some(v)
-            }
-            _ => None,
-        }
-    }
-
-    pub fn cell_value_f64(&self, ds: &DataSource, row: usize, col: &Column) -> Option<f64> {
-        GridCore::get_value_f64(ds, row, col)
-    }
-
-    pub fn cell_value_str(&self, ds: &DataSource, row: usize, col: &Column) -> Option<String> {
-        match row {
-            row if row < ds.row_count => {
-                let index = GridCore::get_cell_index(ds, row, col);
-                let str_slice = &ds.data[index..index + col.data_len]; // todo
-                let s = String::from_utf8_lossy(str_slice);
-                return Some(s.to_string());
-            }
-            _ => None,
-        }
-    }
-
-    pub fn cell_x(&self, index: usize) -> f64 {
-        index as f64 * self.col_width()
-    }
-
     pub fn clear(&self) {
         let ctx = self.get_ctx();
         fill_rect(
@@ -122,7 +77,7 @@ impl<'a> GridCore<'a> {
         );
 
         fill_rect(
-            self.ctx.unwrap(),
+            ctx,
             self.left(),
             self.top(),
             self.client_width(),
@@ -135,7 +90,16 @@ impl<'a> GridCore<'a> {
         set_text_baseline(ctx, "middle");
     }
 
-    pub fn draw_gridlines(&self, ds: &DataSource) {
+    pub fn render(&mut self, ds: &DataSource) {
+        self.calc_col_width();
+        self.render_gridlines(ds);
+        self.clip_begin();
+        self.render_data(ds);
+        self.render_header();
+        self.clip_end();
+    }
+
+    pub fn render_gridlines(&self, ds: &DataSource) {
         let ctx = self.get_ctx();
         self.clear();
 
@@ -199,8 +163,7 @@ impl<'a> GridCore<'a> {
             if y < self.bottom() as f64 && r < ds.row_count {
                 let highlight = if ts_col.is_some() {
                     self.is_highlight(
-                        self.cell_value_f64(ds, r, ts_col.unwrap())
-                            .unwrap_or_default(),
+                        GridCore::get_value_f64(ds, r, ts_col.unwrap()).unwrap_or_default(),
                     )
                 } else {
                     false
@@ -220,26 +183,6 @@ impl<'a> GridCore<'a> {
         }
     }
 
-    pub fn format_value(&self, value: f64, col: &Column) -> String {
-        match col.col_type {
-            ColumnType::DateTime | ColumnType::Timestamp | ColumnType::Date => Local
-                .timestamp(value as i64 / 1000, 0)
-                .format("%r")
-                .to_string(),
-            ColumnType::Number => {
-                format_args!("{:.*}", self.cell_precision(col), value).to_string()
-            }
-            _ => value.to_string(),
-        }
-    }
-
-    pub fn cell_precision(&self, col: &Column) -> usize {
-        match col.col_type {
-            ColumnType::Number => col.precision,
-            _ => 0,
-        }
-    }
-
     fn fill_text_formatted(
         &self,
         ds: &DataSource,
@@ -254,11 +197,11 @@ impl<'a> GridCore<'a> {
         let v = match col.col_type {
             ColumnType::String => {
                 align = "left";
-                self.cell_value_str(ds, r, col).unwrap_or("?".to_string())
+                GridCore::cell_value_str(ds, r, col).unwrap_or("?".to_string())
             }
             _ => {
-                let val = self.cell_value_f64(ds, r, col).unwrap_or_default();
-                self.format_value(val, col)
+                let val = GridCore::get_value_f64(ds, r, col).unwrap_or_default();
+                format_value(val, col)
             }
         };
 
@@ -299,6 +242,62 @@ impl<'a> GridCore<'a> {
             align,
             highlight,
         );
+    }
+
+    pub fn clip_begin(&self) {
+        clip_begin(
+            self.get_ctx(),
+            self.left(),
+            self.top(),
+            self.client_width(),
+            self.client_height(),
+        );
+    }
+
+    pub fn clip_end(&self) {
+        clip_end(self.get_ctx());
+    }
+}
+
+impl<'a> GridCore<'a> {
+    pub fn cell_value_str(ds: &DataSource, row: usize, col: &Column) -> Option<String> {
+        match row {
+            row if row < ds.row_count => {
+                let index = GridCore::get_cell_index(ds, row, col);
+                let str_slice = &ds.data[index..index + col.data_len]; // todo
+                let s = String::from_utf8_lossy(str_slice);
+                return Some(s.to_string());
+            }
+            _ => None,
+        }
+    }
+
+    pub fn get_value_f64(ds: &DataSource, row: usize, col: &Column) -> Option<f64> {
+        match row {
+            row if row < ds.row_count && ds.data.len() > 0 => {
+                let index = GridCore::get_cell_index(ds, row, col);
+                // note: potential performance impact - verify.
+                let v = BigEndian::read_f64(&ds.data[index..index + num_size()]);
+                Some(v)
+            }
+            _ => None,
+        }
+    }
+
+    pub fn cell_x(&self, index: usize) -> f64 {
+        index as f64 * self.col_width()
+    }
+
+    pub fn get_cell_index(ds: &DataSource, row: usize, col: &Column) -> usize {
+        let index = row * ds.data_width + col.data_offset;
+        assert_lt!(
+            index,
+            ds.data.len(),
+            "buffer index {} out of bounds {}",
+            index,
+            ds.data.len()
+        );
+        index
     }
 
     pub fn get_col_by_type(&self, col_type: ColumnType) -> Option<&Column> {
@@ -354,20 +353,5 @@ impl<'a> GridCore<'a> {
     }
     pub fn mid(&self) -> f64 {
         self.left() + ((self.client_width() / 2.0).round())
-    }
-}
-
-impl<'a> GridCore<'a> {
-    pub fn clip_begin(&self) {
-        clip_begin(
-            self.get_ctx(),
-            self.left(),
-            self.top(),
-            self.client_width(),
-            self.client_height(),
-        );
-    }
-    pub fn clip_end(&self) {
-        clip_end(self.get_ctx());
     }
 }

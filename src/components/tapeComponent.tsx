@@ -49,7 +49,7 @@ export function TapeComponent(props: TapeComponentProps) {
   const tick = () => {
     if (grid) {
       const [data, data_width] = generateTradeData();
-      grid.render(data, data_width, size.width, size.height);
+      grid.render(data, data_width, 0, 0, size.width, size.height);
     }
   };
 

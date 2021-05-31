@@ -47,7 +47,7 @@ export function DOBComponent(props: DOBComponentProps) {
   const tick = () => {
     if (grid) {
       const { bids, asks, data_width } = generateDOBData();
-      grid.render(bids, asks, data_width, size.width, size.height);
+      grid.render(bids, asks, data_width, 0, 0, size.width, size.height);
     }
   };
 

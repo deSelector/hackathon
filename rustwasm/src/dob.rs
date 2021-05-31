@@ -48,30 +48,46 @@ impl DOB {
         }
     }
 
-    pub fn render(&mut self, bids: &[SZ], asks: &[SZ], data_width: usize, width: u32, height: u32) {
+    pub fn render(
+        &mut self,
+        bids: &[SZ],
+        asks: &[SZ],
+        data_width: usize,
+        left: u32,
+        top: u32,
+        width: u32,
+        height: u32,
+    ) {
         let ctx = &ctx(&self.id);
 
-        let mut left = (
-            GridCore::new(ctx, &self.bid_schema, 0, 0, width / 2, height),
+        let mut left_panel = (
+            GridCore::new(ctx, &self.bid_schema, left, top, width / 2, height),
             DataSource::new(bids, data_width),
             Side::Bid,
         );
-        let mut right = (
-            GridCore::new(ctx, &self.ask_schema, width / 2 + 1, 0, width / 2, height),
+        let mut right_panel = (
+            GridCore::new(
+                ctx,
+                &self.ask_schema,
+                left + width / 2 + 1,
+                top,
+                width / 2,
+                height,
+            ),
             DataSource::new(asks, data_width),
             Side::Ask,
         );
 
         let ratio = self.calc_bid_ask_ratio(
-            &left.1,
-            &right.1,
-            left.0.client_width(),
-            left.0.get_col_by_id(Field::CumSize as u32).unwrap(),
+            &left_panel.1,
+            &right_panel.1,
+            left_panel.0.client_width(),
+            left_panel.0.get_col_by_id(Field::CumSize as u32).unwrap(),
         );
 
-        for (grid, ds, side) in [&mut left, &mut right].iter_mut() {
+        for (grid, ds, side) in [&mut left_panel, &mut right_panel].iter_mut() {
             grid.calc_col_width();
-            grid.draw_gridlines(&ds);
+            grid.render_gridlines(&ds);
 
             grid.clip_begin();
             self.render_book(grid, ds, *side);
@@ -104,10 +120,11 @@ impl DOB {
                 for col in &grid.schema.unwrap().cols {
                     if !col.hidden {
                         let x = dx + grid.cell_x(i);
-                        let v = grid.cell_value_f64(ds, r, col).unwrap_or_default();
+                        let v = GridCore::get_value_f64(ds, r, col).unwrap_or_default();
 
-                        let hi = grid
-                            .is_highlight(grid.cell_value_f64(ds, r, ts_col).unwrap_or_default());
+                        let hi = grid.is_highlight(
+                            GridCore::get_value_f64(ds, r, ts_col).unwrap_or_default(),
+                        );
                         grid.fill_text_aligned(
                             &format_args!("{:.*}", col.precision, v).to_string(),
                             x,
@@ -155,7 +172,7 @@ impl DOB {
         for r in 0_usize.. {
             let y = grid.top() + ((r + HEADER_LINES) * grid.row_height) as f64;
             if y < grid.bottom() && r < ds.row_count {
-                let len = grid.cell_value_f64(ds, r, cum_col).unwrap_or_default() * ratio;
+                let len = GridCore::get_value_f64(ds, r, cum_col).unwrap_or_default() * ratio;
                 let x = match side {
                     Side::Bid => grid.right() - len,
                     Side::Ask => grid.left(),
