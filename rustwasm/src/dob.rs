@@ -30,17 +30,19 @@ const CUM_SIZE_COL_ID: &str = "cumSize"; // don't change it - used by the UI dem
 #[derive(Default)]
 pub struct DOB {
     id: String,
-    schema: Schema,
+    bid_schema: Schema,
+    ask_schema: Schema,
 }
 
 #[wasm_bindgen]
 impl DOB {
     pub fn new(id: String, schema_obj: &JsValue) -> DOB {
         set_panic_hook();
-        let schema = DOB::set_schema(schema_obj);
+        let (bid_schema, ask_schema) = DOB::set_schema(schema_obj);
         DOB {
             id,
-            schema,
+            bid_schema,
+            ask_schema,
             ..Default::default()
         }
     }
@@ -57,15 +59,15 @@ impl DOB {
     ) {
         let ctx = &ctx(&self.id);
 
-        let mut left_panel = (
-            GridRenderer::new(ctx, &self.schema, left, top, width / 2, height),
+        let mut bid_panel = (
+            GridRenderer::new(ctx, &self.bid_schema, left, top, width / 2, height),
             DataSource::new(bids, data_width),
             Side::Bid,
         );
-        let mut right_panel = (
+        let mut ask_panel = (
             GridRenderer::new(
                 ctx,
-                &self.schema,
+                &self.ask_schema,
                 left + width / 2 + 1,
                 top,
                 width / 2,
@@ -76,13 +78,13 @@ impl DOB {
         );
 
         let ratio = self.calc_bid_ask_ratio(
-            &left_panel.1,
-            &right_panel.1,
-            left_panel.0.client_width(),
-            self.schema.get_col_by_id(CUM_SIZE_COL_ID).unwrap(),
+            &bid_panel.1,
+            &ask_panel.1,
+            bid_panel.0.client_width(),
+            self.bid_schema.get_col_by_id(CUM_SIZE_COL_ID).unwrap(),
         );
 
-        for (grid, ds, side) in [&mut left_panel, &mut right_panel].iter_mut() {
+        for (grid, ds, side) in [&mut bid_panel, &mut ask_panel].iter_mut() {
             grid.calc_col_width();
             grid.render_gridlines(ds);
 
@@ -94,14 +96,17 @@ impl DOB {
         }
     }
 
-    fn set_schema(obj: &JsValue) -> Schema {
+    fn set_schema(obj: &JsValue) -> (Schema, Schema) {
         console_error_panic_hook::set_once();
-        let mut schema = obj.into_serde::<Schema>().unwrap();
-        normalize_schema(&mut schema);
-        // for mut col in &mut schema.cols {
-        //     col.align = "left".to_string();
-        // }
-        schema
+        let mut bid_schema = obj.into_serde::<Schema>().unwrap();
+        normalize_schema(&mut bid_schema);
+        // flip the ask side columns and alignments
+        let mut ask_schema = bid_schema.clone();
+        ask_schema.cols.reverse();
+        for mut col in &mut ask_schema.cols {
+            col.align = "left".to_string();
+        }
+        (bid_schema, ask_schema)
     }
 }
 
