@@ -13,13 +13,12 @@ export function fill(buffer: ArrayBuffer, data: RawData[], data_width: number, c
             for (let col of columns) {
                 let v = getter?.(buff, col) ?? buff[col.id];
                 if (col.col_type === ColumnType.String) {
-                    console.assert(typeof v === "string");
-                    const s = new TextEncoder().encode((v as string).substring(0, col.size ?? NUM_SIZE));
+                    const s = new TextEncoder().encode((v as string ?? "").substring(0, col.size ?? NUM_SIZE));
                     array.set(s, offset);
                     offset += col.size ?? NUM_SIZE;
                 } else {
                     console.assert(typeof v === "number");
-                    view.setFloat64(offset, v as number);
+                    view.setFloat64(offset, v as number ?? 0);
                     offset += NUM_SIZE;
                 }
             }

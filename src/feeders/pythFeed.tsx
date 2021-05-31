@@ -24,6 +24,12 @@ export const pythSchema: Schema = {
       col_type: ColumnType.String,
     },
     {
+      id: "description",
+      name: "Description",
+      col_type: ColumnType.String,
+      size: 20,
+    },
+    {
       id: "time",
       name: "Time",
       col_type: ColumnType.Timestamp,
