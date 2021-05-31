@@ -1,5 +1,5 @@
+use crate::grid::column::*;
 use crate::grid::renderer::*;
-use crate::grid::schema::Column;
 use byteorder::{BigEndian, ByteOrder};
 
 #[derive(Default)]
@@ -27,7 +27,9 @@ impl<'a> DataSource<'a> {
             ..Default::default()
         }
     }
+}
 
+impl<'a> DataSource<'a> {
     pub fn get_value_f64(&self, row: usize, col: &Column) -> Option<f64> {
         match row {
             row if row < self.row_count && self.data.len() > 0 => {

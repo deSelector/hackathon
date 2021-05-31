@@ -2,6 +2,7 @@ use super::grid::ctx2d::*;
 use super::grid::ds::*;
 use super::grid::renderer::*;
 use super::grid::schema::*;
+use crate::grid::column::*;
 
 use crate::utils::*;
 use std::f64;

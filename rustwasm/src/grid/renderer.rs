@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use super::ctx2d::*;
 use super::ds::*;
+use crate::grid::column::*;
 use crate::grid::schema::*;
 
 use js_sys::Date;
@@ -192,7 +193,7 @@ impl<'a> GridRenderer<'a> {
             }
             _ => {
                 let val = ds.get_value_f64(row, col).unwrap_or_default();
-                format_value(val, col)
+                col.format_value(val)
             }
         };
 

@@ -1,3 +1,4 @@
+pub mod column;
 pub mod ctrl;
 pub mod ctx2d;
 pub mod ds;
