@@ -23,91 +23,96 @@ enum Side {
     Ask = 1,
 }
 
+enum Field {
+    CumSize = 3, // note: keep it in synch with column id schema config
+}
+
 #[wasm_bindgen]
 #[derive(Default)]
 pub struct DOB {
     id: String,
     bid_schema: Schema,
     ask_schema: Schema,
-    pub width: u32,
-    pub height: u32,
 }
 
 #[wasm_bindgen]
 impl DOB {
-    pub fn new(id: String, width: u32, height: u32) -> DOB {
+    pub fn new(id: String, left_schema: &JsValue, right_schema: &JsValue) -> DOB {
         set_panic_hook();
+        let (bid_schema, ask_schema) = DOB::set_schema(left_schema, right_schema);
         DOB {
             id,
-            width,
-            height,
+            bid_schema,
+            ask_schema,
             ..Default::default()
         }
     }
 
-    pub fn render(&self, bids: &[SZ], asks: &[SZ], data_width: u32) {
+    pub fn render(&mut self, bids: &[SZ], asks: &[SZ], data_width: usize, width: u32, height: u32) {
         let ctx = &ctx(&self.id);
 
         let mut left = (
-            GridCore::new(ctx, 0, 0, self.width / 2, self.height),
+            GridCore::new(ctx, &self.bid_schema, 0, 0, width / 2, height),
             DataSource::new(bids, data_width),
             Side::Bid,
-            &self.bid_schema,
         );
         let mut right = (
-            GridCore::new(ctx, self.width / 2 + 1, 0, self.width / 2, self.height),
+            GridCore::new(ctx, &self.ask_schema, width / 2 + 1, 0, width / 2, height),
             DataSource::new(asks, data_width),
             Side::Ask,
-            &self.ask_schema,
         );
 
-        let ratio = self.calc_bid_side_ratio(&left.1, &right.1, left.0.client_width());
+        let ratio = self.calc_bid_ask_ratio(
+            &left.1,
+            &right.1,
+            left.0.client_width(),
+            left.0.get_col_by_id(Field::CumSize as u32).unwrap(),
+        );
 
-        for (grid, ds, side, schema) in [&mut left, &mut right].iter_mut() {
-            grid.col_count = 2; // schema.cols.len() as u32;
+        for (grid, ds, side) in [&mut left, &mut right].iter_mut() {
+            grid.calc_col_width();
             grid.draw_gridlines(&ds);
 
             grid.clip_begin();
-            self.render_book(grid, ds, schema, *side);
+            self.render_book(grid, ds, *side);
             self.render_pyramid(grid, ds, *side, ratio);
+            grid.render_header();
             grid.clip_end();
         }
     }
 
-    pub fn set_schema(&mut self, bid: &JsValue, ask: &JsValue) {
+    fn set_schema(bid: &JsValue, ask: &JsValue) -> (Schema, Schema) {
         console_error_panic_hook::set_once();
-        self.bid_schema = bid.into_serde::<Schema>().unwrap_or_default();
-        self.ask_schema = ask.into_serde::<Schema>().unwrap_or_default();
+        let bid_schema = bid.into_serde::<Schema>().unwrap();
+        assert_schema(&bid_schema);
+        let ask_schema = ask.into_serde::<Schema>().unwrap();
+        assert_schema(&ask_schema);
+        (bid_schema, ask_schema)
     }
 }
 
 impl DOB {
-    fn render_book(&self, grid: &GridCore, ds: &DataSource, schema: &Schema, side: Side) {
-        let col_width = grid.cell_width();
+    fn render_book(&self, grid: &GridCore, ds: &DataSource, side: Side) {
         let dx = grid.left();
-
+        let ts_col = grid.get_col_by_type(ColumnType::Timestamp).unwrap();
         let align = self.cell_align(side); // todo: add align to schema and remove
 
-        for r in 0.. {
-            let y = grid.top() + (r * grid.row_height) as f64;
-            if y < grid.bottom() as f64 && r < ds.row_count {
+        for r in 0_usize.. {
+            let y = grid.top() + ((r + HEADER_LINES) * grid.row_height) as f64;
+            if y < grid.bottom() && r < ds.row_count {
                 let mut i = 0;
-                for c in &schema.cols {
-                    if !c.hidden {
+                for col in &grid.schema.unwrap().cols {
+                    if !col.hidden {
                         let x = dx + grid.cell_x(i);
-                        let v = grid
-                            .cell_value_f64(ds, r as i32, c.data_offset)
-                            .unwrap_or_default();
+                        let v = grid.cell_value_f64(ds, r, col).unwrap_or_default();
 
-                        let hi = grid.is_highlight(
-                            grid.cell_value_f64(ds, r as i32, 3 /*Field::Time as u32*/)
-                                .unwrap_or_default(),
-                        );
+                        let hi = grid
+                            .is_highlight(grid.cell_value_f64(ds, r, ts_col).unwrap_or_default());
                         grid.fill_text_aligned(
-                            &format_args!("{:.*}", c.precision as usize, v).to_string(),
+                            &format_args!("{:.*}", col.precision, v).to_string(),
                             x,
                             y,
-                            col_width,
+                            grid.col_width(),
                             align,
                             hi,
                         );
@@ -120,19 +125,20 @@ impl DOB {
         }
     }
 
-    fn calc_bid_side_ratio(
+    fn calc_bid_ask_ratio(
         &self,
         left_ds: &DataSource,
         right_ds: &DataSource,
         client_width: f64,
+        cum_col: &Column,
     ) -> f64 {
         let max_cumulative_value = std::cmp::max(
-            self.get_max_cum_size(left_ds) as u32,
-            self.get_max_cum_size(right_ds) as u32,
+            self.get_max_cum_size(left_ds, cum_col) as u32,
+            self.get_max_cum_size(right_ds, cum_col) as u32,
         ) as f64;
 
         return if max_cumulative_value > 0.0 {
-            client_width / max_cumulative_value / 2.0
+            client_width / max_cumulative_value
         } else {
             0.0
         };
@@ -142,17 +148,14 @@ impl DOB {
         if ds.row_count == 0 {
             return;
         }
-
+        let cum_col = grid.get_col_by_id(Field::CumSize as u32).unwrap();
         let ctx = grid.get_ctx();
         ctx.save();
 
-        for r in 0.. {
-            let y = grid.top() + (r * grid.row_height) as f64;
-            if y < grid.bottom() as f64 && r < ds.row_count {
-                let len = grid
-                    .cell_value_f64(ds, r as i32, 2 /*Field::CumSize as u32*/)
-                    .unwrap_or_default()
-                    * ratio;
+        for r in 0_usize.. {
+            let y = grid.top() + ((r + HEADER_LINES) * grid.row_height) as f64;
+            if y < grid.bottom() && r < ds.row_count {
+                let len = grid.cell_value_f64(ds, r, cum_col).unwrap_or_default() * ratio;
                 let x = match side {
                     Side::Bid => grid.right() - len,
                     Side::Ask => grid.left(),
@@ -181,8 +184,7 @@ impl DOB {
         }
     }
 
-    fn get_max_cum_size(&self, ds: &DataSource) -> f64 {
-        let col_data_offset = 2; /*Field::CumSize*/
-        GridCore::get_value_f64(ds, ds.row_count as i32 - 1, col_data_offset).unwrap_or_default()
+    fn get_max_cum_size(&self, ds: &DataSource, col: &Column) -> f64 {
+        GridCore::get_value_f64(ds, ds.row_count - 1, col).unwrap_or_default()
     }
 }

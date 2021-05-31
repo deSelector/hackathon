@@ -23,17 +23,13 @@ export function PythComponent(props: PythComponentProps) {
 
   const wasm = useRustWasm();
   if (wasm && !grid) {
-    const g = wasm.Grid.new(id, size.width, size.height);
-    g.set_schema(pythSchema);
-    setGrid(g);
+    setGrid(wasm.Grid.new(id, pythSchema));
   }
 
   const tick = async () => {
     if (grid) {
       const [data, data_width] = await generatePythData();
-      grid.width = size.width;
-      grid.height = size.height;
-      grid.render(data, data_width);
+      grid.render(data, data_width, size.width, size.height);
     }
   };
 

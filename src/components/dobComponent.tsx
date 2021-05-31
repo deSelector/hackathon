@@ -27,9 +27,7 @@ export function DOBComponent(props: DOBComponentProps) {
 
   const wasm = useRustWasm();
   if (wasm && !grid) {
-    const g = wasm.DOB.new(id, size.width, size.height);
-    g.set_schema(bidSchema, askSchema);
-    setGrid(g);
+    setGrid(wasm.DOB.new(id, bidSchema, askSchema));
   }
 
   const buttons = () => {
@@ -49,9 +47,7 @@ export function DOBComponent(props: DOBComponentProps) {
   const tick = () => {
     if (grid) {
       const { bids, asks, data_width } = generateDOBData();
-      grid.width = size.width;
-      grid.height = size.height;
-      grid.render(bids, asks, data_width);
+      grid.render(bids, asks, data_width, size.width, size.height);
     }
   };
 

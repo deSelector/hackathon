@@ -29,9 +29,7 @@ export function TapeComponent(props: TapeComponentProps) {
 
   const wasm = useRustWasm();
   if (wasm && !grid) {
-    const g = wasm.Grid.new(id, size.width, size.height);
-    g.set_schema(tradeSchema);
-    setGrid(g);
+    setGrid(wasm.Grid.new(id, tradeSchema));
   }
 
   const buttons = () => {
@@ -51,9 +49,7 @@ export function TapeComponent(props: TapeComponentProps) {
   const tick = () => {
     if (grid) {
       const [data, data_width] = generateTradeData();
-      grid.width = size.width;
-      grid.height = size.height;
-      grid.render(data, data_width);
+      grid.render(data, data_width, size.width, size.height);
     }
   };
 

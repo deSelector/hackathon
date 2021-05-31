@@ -5,8 +5,7 @@ let bid_buffer: ArrayBuffer;
 let ask_buffer: ArrayBuffer;
 let raw_data: Quote[];
 
-const MAX_ROW_COUNT = 50;
-const MIN_ROW_COUNT = 30;
+const ROW_COUNT = 30;
 
 interface Quote {
   price: number;
@@ -31,7 +30,7 @@ const priceCol = {
 } as Column;
 
 const cumSizeCol = {
-  id: 3,
+  id: 3, // do not change it - used by the rust component
   name: "CumSize",
   col_type: ColumnType.Number,
   data_offset: 16,
@@ -68,12 +67,10 @@ export function generateDOBData(): {
   const data_width = calcDataWidth(bidSchema);
 
   if (!raw_data) {
-    bid_buffer = bid_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width);
-    ask_buffer = ask_buffer ?? new ArrayBuffer(MAX_ROW_COUNT * data_width);
+    bid_buffer = bid_buffer ?? new ArrayBuffer(ROW_COUNT * data_width);
+    ask_buffer = ask_buffer ?? new ArrayBuffer(ROW_COUNT * data_width);
 
-    raw_data = Array(
-      Math.max(MIN_ROW_COUNT * 2, Math.floor(Math.random() * 2 * MAX_ROW_COUNT))
-    )
+    raw_data = Array(ROW_COUNT * 2)
       .fill(0)
       .map(item);
   }

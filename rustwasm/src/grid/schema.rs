@@ -17,6 +17,8 @@ pub enum ColumnType {
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Schema {
     pub cols: Vec<Column>,
+    #[serde(default)]
+    pub col_width: f64, // todo: switch to col-based widths
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -24,11 +26,11 @@ pub struct Column {
     pub id: u32,
     pub name: String,
     pub col_type: ColumnType,
-    pub data_offset: u32,
+    pub data_offset: usize,
     #[serde(default = "num_size")]
     pub data_len: usize,
     #[serde(default)]
-    pub precision: u32,
+    pub precision: usize,
     #[serde(default)]
     pub hidden: bool,
 }
