@@ -9,7 +9,7 @@ import classnames from "classnames";
 // import { useDataContext } from "../context";
 import { generateTradeData, tradeSchema } from "../feeders";
 
-const frequencies = [0, 50, 100, 250, 500, 750, 1000, 10000];
+const frequencies = [0, 100, 500, 1000, 10000];
 
 const UPDATE_FREQ = 500;
 
