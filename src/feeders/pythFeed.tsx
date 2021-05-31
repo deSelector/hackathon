@@ -1,8 +1,8 @@
 import { fill } from "../context";
-import { calcDataWidth, ColumnType, Schema } from "../core";
+import { calcDataWidth, Column, ColumnType, Schema } from "../core";
 import { init, priceMap, PythQuote } from "./pythBridge";
 
-let data_buffer = new ArrayBuffer(0);
+let buffer = new ArrayBuffer(0);
 
 export const pythSchema: Schema = {
   cols: [
@@ -17,6 +17,18 @@ export const pythSchema: Schema = {
       name: "Price",
       col_type: ColumnType.Number,
       precision: 5,
+    },
+    {
+      id: "market_cap_rank",
+      name: "Rank",
+      col_type: ColumnType.Number,
+      precision: 0,
+    },
+    {
+      id: "market_cap",
+      name: "Mkt Cap (Bln)",
+      col_type: ColumnType.Number,
+      precision: 3,
     },
     {
       id: "asset",
@@ -42,19 +54,21 @@ export async function generatePythData(): Promise<[Int8Array, number]> {
   // todo: move it outside of the loop?
   await init();
 
-  const data_width = calcDataWidth(pythSchema);
+  const size = calcDataWidth(pythSchema);
   const quotes = Array.from(priceMap.values());
-  const size = quotes.length * data_width;
-  if (data_buffer.byteLength < size) {
-    data_buffer = new ArrayBuffer(size);
+  const totalSize = quotes.length * size;
+  if (buffer.byteLength < totalSize) {
+    buffer = new ArrayBuffer(totalSize);
   }
 
   const array = fill<PythQuote>(
-    data_buffer,
+    buffer,
     quotes,
-    data_width,
-    pythSchema.cols
+    size,
+    pythSchema.cols,
+    (data: PythQuote, col: Column) =>
+      col.id === "market_cap" ? data[col.id] / 1000000000 : data[col.id]
   );
 
-  return [array, data_width];
+  return [array, size];
 }

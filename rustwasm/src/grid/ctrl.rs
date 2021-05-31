@@ -48,7 +48,6 @@ impl Grid {
     fn set_schema(obj: &JsValue) -> Schema {
         console_error_panic_hook::set_once();
         let mut schema = obj.into_serde::<Schema>().unwrap_or_default();
-        _console_log!("SCHEMA: {:?}, el={:?}", obj, schema);
         normalize_schema(&mut schema);
         schema
     }
