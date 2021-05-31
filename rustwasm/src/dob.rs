@@ -82,7 +82,9 @@ impl DOB {
             &left_panel.1,
             &right_panel.1,
             left_panel.0.client_width(),
-            left_panel.0.get_col_by_id(Field::CumSize as u32).unwrap(),
+            self.bid_schema
+                .get_col_by_id(Field::CumSize as u32)
+                .unwrap(),
         );
 
         for (grid, ds, side) in [&mut left_panel, &mut right_panel].iter_mut() {
@@ -110,29 +112,30 @@ impl DOB {
 impl DOB {
     fn render_book(&self, gr: &GridRenderer, ds: &DataSource, side: Side) {
         let dx = gr.left();
-        let ts_col = gr.get_col_by_type(ColumnType::Timestamp).unwrap();
+        let ts_col = gr
+            .schema
+            .unwrap()
+            .get_col_by_type(ColumnType::Timestamp)
+            .unwrap();
         let align = self.cell_align(side); // todo: add align to schema and remove
 
         for row in 0_usize.. {
             let y = gr.top() + ((row + HEADER_LINES) * gr.row_height) as f64;
             if y < gr.bottom() && row < ds.row_count {
                 let mut i = 0;
-                for col in &gr.schema.unwrap().cols {
-                    if !col.hidden {
-                        let x = dx + gr.cell_x(i);
-                        let v = ds.get_value_f64(row, col).unwrap_or_default();
-
-                        let hi = gr.is_highlight(ds.get_value_f64(row, ts_col).unwrap_or_default());
-                        gr.fill_text_aligned(
-                            &format_args!("{:.*}", col.precision, v).to_string(),
-                            x,
-                            y,
-                            gr.col_width(),
-                            align,
-                            hi,
-                        );
-                        i += 1;
-                    }
+                for col in gr.schema.unwrap().get_visible_cols() {
+                    let x = dx + gr.cell_x(i);
+                    let v = ds.get_value_f64(row, col).unwrap_or_default();
+                    let hi = gr.is_highlight(ds.get_value_f64(row, ts_col).unwrap_or_default());
+                    gr.render_text_aligned(
+                        &format_args!("{:.*}", col.precision, v).to_string(),
+                        x,
+                        y,
+                        gr.col_width(),
+                        align,
+                        hi,
+                    );
+                    i += 1;
                 }
             } else {
                 break;
@@ -163,7 +166,11 @@ impl DOB {
         if ds.row_count == 0 {
             return;
         }
-        let cum_col = gr.get_col_by_id(Field::CumSize as u32).unwrap();
+        let cum_col = gr
+            .schema
+            .unwrap()
+            .get_col_by_id(Field::CumSize as u32)
+            .unwrap();
         let ctx = gr.get_ctx();
         ctx.save();
 

@@ -107,14 +107,12 @@ impl<'a> GridRenderer<'a> {
 
         // Vertical lines.
         let mut index = 0;
-        for col in &self.schema.unwrap().cols {
-            if !col.hidden {
-                let x = self.left() + (index as f64 * self.col_width()).floor();
-                ctx.move_to(x, self.top());
-                ctx.line_to(x, self.bottom());
-                vertical_line(ctx, self.top(), self.bottom(), x);
-                index += 1;
-            }
+        for _col in self.schema.unwrap().get_visible_cols() {
+            let x = self.left() + (index as f64 * self.col_width()).floor();
+            ctx.move_to(x, self.top());
+            ctx.line_to(x, self.bottom());
+            vertical_line(ctx, self.top(), self.bottom(), x);
+            index += 1;
         }
 
         // Horizontal lines.
@@ -137,24 +135,22 @@ impl<'a> GridRenderer<'a> {
 
     pub fn render_header(&self) {
         let mut index = 0;
-        for col in &self.schema.unwrap().cols {
-            if !col.hidden {
-                let x = self.left() + self.cell_x(index);
-                self.fill_text_aligned(
-                    col.name.as_str(),
-                    x,
-                    0_f64,
-                    self.col_width(),
-                    "center",
-                    false,
-                );
-                index += 1;
-            }
+        for col in self.schema.unwrap().get_visible_cols() {
+            let x = self.left() + self.cell_x(index);
+            self.render_text_aligned(
+                col.name.as_str(),
+                x,
+                0_f64,
+                self.col_width(),
+                "center",
+                false,
+            );
+            index += 1;
         }
     }
 
     pub fn render_data(&self, ds: &DataSource) {
-        let ts_col = self.get_col_by_type(ColumnType::Timestamp);
+        let ts_col = self.schema.unwrap().get_col_by_type(ColumnType::Timestamp);
 
         for row in 0_usize.. {
             let y = self.top() + ((row + HEADER_LINES) * self.row_height) as f64;
@@ -167,12 +163,10 @@ impl<'a> GridRenderer<'a> {
                 };
 
                 let mut index = 0;
-                for col in &self.schema.unwrap().cols {
-                    if !col.hidden {
-                        let x = self.left() + self.cell_x(index);
-                        self.fill_text_formatted(ds, row, x, y, col, highlight);
-                        index += 1;
-                    }
+                for col in self.schema.unwrap().get_visible_cols() {
+                    let x = self.left() + self.cell_x(index);
+                    self.render_text_formatted(ds, row, x, y, col, highlight);
+                    index += 1;
                 }
             } else {
                 break;
@@ -180,7 +174,7 @@ impl<'a> GridRenderer<'a> {
         }
     }
 
-    fn fill_text_formatted(
+    fn render_text_formatted(
         &self,
         ds: &DataSource,
         row: usize,
@@ -202,7 +196,7 @@ impl<'a> GridRenderer<'a> {
             }
         };
 
-        self.fill_text_aligned(&v, x, y, self.col_width(), align, highlight);
+        self.render_text_aligned(&v, x, y, self.col_width(), align, highlight);
     }
 
     pub fn is_highlight(&self, time: f64) -> bool {
@@ -210,7 +204,7 @@ impl<'a> GridRenderer<'a> {
         now - time as i64 <= HIGHLIGHT_DURATION
     }
 
-    pub fn draw_highlight(&self, x: f64, y: f64, width: f64, time: f64) {
+    pub fn render_highlight(&self, x: f64, y: f64, width: f64, time: f64) {
         let ctx = self.get_ctx();
         let now = Date::new_0().get_time() as i64;
         if now - time as i64 <= HIGHLIGHT_DURATION {
@@ -220,7 +214,7 @@ impl<'a> GridRenderer<'a> {
         }
     }
 
-    pub fn fill_text_aligned(
+    pub fn render_text_aligned(
         &self,
         text: &str,
         x: f64,
@@ -260,18 +254,6 @@ impl<'a> GridRenderer<'a> {
     pub fn cell_x(&self, index: usize) -> f64 {
         index as f64 * self.col_width()
     }
-
-    pub fn get_col_by_type(&self, col_type: ColumnType) -> Option<&Column> {
-        self.schema
-            .unwrap()
-            .cols
-            .iter()
-            .find(|o| o.col_type == col_type)
-    }
-
-    pub fn get_col_by_id(&self, id: u32) -> Option<&Column> {
-        self.schema.unwrap().cols.iter().find(|o| o.id == id)
-    }
 }
 
 impl<'a> GridRenderer<'a> {
@@ -279,21 +261,13 @@ impl<'a> GridRenderer<'a> {
         self.ctx.unwrap()
     }
     pub fn calc_col_width(&mut self) {
-        let visible_count = self
-            .schema
-            .unwrap()
-            .cols
-            .iter()
-            .filter(|&o| !o.hidden)
-            .count();
+        let visible_count = self.schema.unwrap().get_visible_row_count();
         assert!(visible_count > 0);
         self.col_width = self.client_width() / visible_count as f64;
     }
-
     pub fn col_width(&self) -> f64 {
         self.col_width
     }
-
     pub fn client_width(&self) -> f64 {
         (self.width - 2 * self.margin) as f64
     }
