@@ -1,6 +1,6 @@
 import { fill } from "../context";
 import { calcDataWidth, ColumnType, Schema } from "../core";
-import { init, priceMap } from "./pythBridge";
+import { init, priceMap, PythQuote } from "./pythBridge";
 
 let data_buffer = new ArrayBuffer(0);
 
@@ -49,7 +49,12 @@ export async function generatePythData(): Promise<[Int8Array, number]> {
     data_buffer = new ArrayBuffer(size);
   }
 
-  const array = fill(data_buffer, quotes, data_width, pythSchema.cols);
+  const array = fill<PythQuote>(
+    data_buffer,
+    quotes,
+    data_width,
+    pythSchema.cols
+  );
 
   return [array, data_width];
 }

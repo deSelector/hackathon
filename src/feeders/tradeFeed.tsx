@@ -64,6 +64,11 @@ export function generateTradeData(): [Int8Array, number] {
 
   raw_data = raw_data.slice(0, MAX_ROW_COUNT);
 
-  const array = fill(trade_buffer, raw_data, data_width, tradeSchema.cols);
+  const array = fill<Trade>(
+    trade_buffer,
+    raw_data,
+    data_width,
+    tradeSchema.cols
+  );
   return [array, data_width];
 }

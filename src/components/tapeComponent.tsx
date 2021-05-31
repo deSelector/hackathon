@@ -11,7 +11,7 @@ import { generateTradeData, tradeSchema } from "../feeders";
 
 const frequencies = [0, 100, 500, 1000, 10000];
 
-const UPDATE_FREQ = 500;
+const UPDATE_FREQ = 100;
 
 export interface TapeComponentProps {
   id?: string;

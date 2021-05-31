@@ -14,39 +14,36 @@ interface Quote extends RawData {
   time: number;
 }
 
-const sizeCol = {
-  id: "size",
-  name: "Size",
-  col_type: ColumnType.Number,
-  precision: 3,
-} as Column;
+export const dobSchema: Schema = {
+  cols: [
+    {
+      id: "size",
+      name: "Size",
+      col_type: ColumnType.Number,
+      precision: 3,
+    } as Column,
 
-const priceCol = {
-  id: "price",
-  name: "Price",
-  col_type: ColumnType.Number,
-  precision: 5,
-} as Column;
+    {
+      id: "price",
+      name: "Price",
+      col_type: ColumnType.Number,
+      precision: 5,
+    } as Column,
 
-const cumSizeCol = {
-  id: CUM_SIZE_COL_ID,
-  name: "CumSize",
-  col_type: ColumnType.Number,
-  hidden: true,
-} as Column;
+    {
+      id: CUM_SIZE_COL_ID,
+      name: "CumSize",
+      col_type: ColumnType.Number,
+      hidden: true,
+    } as Column,
 
-const timeCol = {
-  id: "time",
-  name: "Time",
-  col_type: ColumnType.Timestamp,
-  hidden: true,
-} as Column;
-
-export const bidSchema: Schema = {
-  cols: [sizeCol, priceCol, cumSizeCol, timeCol],
-};
-export const askSchema: Schema = {
-  cols: [priceCol, sizeCol, cumSizeCol, timeCol],
+    {
+      id: "time",
+      name: "Time",
+      col_type: ColumnType.Timestamp,
+      hidden: true,
+    } as Column,
+  ],
 };
 
 export function generateDOBData(): {
@@ -61,7 +58,7 @@ export function generateDOBData(): {
       time: Date.now(),
     } as Quote);
 
-  const data_width = calcDataWidth(bidSchema);
+  const data_width = calcDataWidth(dobSchema);
 
   if (!raw_data) {
     bid_buffer = bid_buffer ?? new ArrayBuffer(ROW_COUNT * data_width);
@@ -74,15 +71,13 @@ export function generateDOBData(): {
 
   function toBuffer(buffer: ArrayBuffer, data: Quote[]) {
     let sum = 0;
-    return fill(
+    return fill<Quote>(
       buffer,
       data,
       data_width,
-      bidSchema.cols,
-      (data: RawData, col: Column) => {
-        const v = data[col.id];
-        return col.id === CUM_SIZE_COL_ID ? (sum += v as number) : v;
-      }
+      dobSchema.cols,
+      (data: Quote, col: Column) =>
+        col.id === CUM_SIZE_COL_ID ? (sum += data.size) : data[col.id]
     );
   }
 

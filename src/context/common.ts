@@ -4,7 +4,7 @@ export interface RawData {
     [id: string]: string | number;
 }
 
-export function fill(buffer: ArrayBuffer, data: RawData[], data_width: number, columns: Column[], getter?: (buff: RawData, col: Column) => number | string): Int8Array {
+export function fill<T extends RawData>(buffer: ArrayBuffer, data: T[], data_width: number, columns: Column[], getter?: (buff: T, col: Column) => number | string): Int8Array {
     const array = new Int8Array(buffer, 0, data.length * data_width);
     const view = new DataView(array.buffer);
     for (let row = 0, offset = 0; row < data.length; row++) {
