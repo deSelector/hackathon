@@ -18,12 +18,15 @@ pub enum ColumnType {
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Column {
-    pub id: u32,
+    pub id: String,
     pub name: String,
+    #[serde(default)]
+    pub description: String,
     pub col_type: ColumnType,
+    #[serde(default)]
     pub data_offset: usize,
     #[serde(default = "num_size")]
-    pub data_len: usize,
+    pub size: usize,
     #[serde(default)]
     pub precision: usize,
     #[serde(default)]

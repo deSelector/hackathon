@@ -2,11 +2,10 @@ export interface Schema {
     cols: Column[];
 }
 export interface Column {
-    id: number;
+    id: string;
     name: string;
     col_type: ColumnType;
-    data_offset: number;
-    data_len?: number;
+    size?: number;
     precision?: number;
     hidden?: boolean;
 }
@@ -22,8 +21,9 @@ export enum ColumnType {
 
 export const NUM_SIZE = 8;
 export function calcDataWidth(schema: Schema): number {
-    return schema?.cols.reduce(
-        (p, c) => (p += c.data_len ?? NUM_SIZE),
-        0
-    );
+    return schema?.cols.reduce((p, c) =>
+        c.col_type === ColumnType.String
+            ? (p += (c.size ?? NUM_SIZE))
+            : (p += NUM_SIZE)
+        , 0);
 }

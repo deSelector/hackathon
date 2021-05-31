@@ -1,5 +1,5 @@
-import { fill } from "../context";
-import { calcDataWidth, Column, ColumnType, Schema } from "../core";
+import { fill, RawData } from "../context";
+import { calcDataWidth, ColumnType, Schema } from "../core";
 
 let trade_buffer: ArrayBuffer;
 let raw_data: Trade[];
@@ -7,7 +7,7 @@ let raw_data: Trade[];
 const MAX_ROW_COUNT = 50;
 const MIN_ROW_COUNT = 30;
 
-interface Trade {
+interface Trade extends RawData {
   price: number;
   size: number;
   time: number;
@@ -16,23 +16,20 @@ interface Trade {
 export const tradeSchema: Schema = {
   cols: [
     {
-      id: 1,
+      id: "price",
       name: "Price",
       col_type: ColumnType.Number,
-      data_offset: 0,
       precision: 5,
     },
     {
-      id: 2,
+      id: "size",
       name: "Size",
       col_type: ColumnType.Number,
-      data_offset: 8,
     },
     {
-      id: 3,
+      id: "time",
       name: "Time",
       col_type: ColumnType.Timestamp,
-      data_offset: 16,
     },
   ],
 };
@@ -67,23 +64,6 @@ export function generateTradeData(): [Int8Array, number] {
 
   raw_data = raw_data.slice(0, MAX_ROW_COUNT);
 
-  const array = fill<Trade>(
-    trade_buffer,
-    raw_data,
-    data_width,
-    tradeSchema.cols,
-    (data: Trade, col: Column) => {
-      switch (col.id) {
-        case 1:
-          return data.price;
-        case 2:
-          return data.size;
-        case 3:
-          return data.time;
-        default:
-          return 0;
-      }
-    }
-  );
+  const array = fill(trade_buffer, raw_data, data_width, tradeSchema.cols);
   return [array, data_width];
 }

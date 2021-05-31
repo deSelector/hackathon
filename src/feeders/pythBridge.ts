@@ -1,31 +1,37 @@
 import { parseMappingData, parsePriceData, parseProductData, } from "@pythnetwork/client";
 import { Buffer } from "buffer";
 import { AccountInfo, Commitment, Connection, PublicKey } from "@solana/web3.js";
+import { RawData } from "../context";
 
 const URL = "https://devnet.solana.com";
 const ORACLE_MAPPING_PUBLIC_KEY = new PublicKey("ArppEFcsybCLE8CRtQJLQ9tLv2peGmQoKWFuiUWm4KBP");
 
 let conn: Connection;
-export const priceMap = new Map<string, ProductPrice>();
+export const priceMap = new Map<string, PythQuote>();
 let pending: Promise<AccountInfo<Buffer> | null>;
 
-export interface ProductPrice {
+export interface PythQuote extends RawData {
     symbol: string;
+    description: string;
+    asset: string;
     price: number;
     confidence: number;
     time: number;
 }
 
-const setPrice = (symbol: string, buffer: Buffer) => {
+const setPrice = (product: any, buffer: Buffer) => {
     const data = parsePriceData(Buffer.from(buffer));
     const { price, confidence } = data;
+    const { symbol, description, nasdaq_symbol, cms_symbol, asset_type: asset } = product;
 
     priceMap.set(symbol, {
-        symbol,
+        symbol: nasdaq_symbol ?? cms_symbol ?? symbol,
+        asset,
+        description,
         price,
         confidence,
         time: Date.now(),
-    });
+    } as PythQuote);
 }
 
 export async function init(): Promise<any> {
@@ -49,17 +55,17 @@ export async function init(): Promise<any> {
                 const products = productAccts.values.map((a) =>
                     parseProductData(Buffer.from(a.data))
                 );
-                console.log(`BRIDGE: parsed ${products.length} products, ${(performance.now() - start) | 0} msec`);
+                console.log(`BRIDGE: parsed ${products.length} products, ${(performance.now() - start) | 0} msec`, products);
                 const priceAccts = await getAccounts(
                     conn,
                     products.map((p) => p.priceAccountKey.toBase58()),
                     "confirmed"
                 );
                 priceAccts.keys.forEach((key, i) => {
-                    const { symbol } = products[i].product;
-                    setPrice(symbol, priceAccts.values[i].data);
+                    const { product } = products[i];
+                    setPrice(product, priceAccts.values[i].data);
                     conn.onAccountChange(new PublicKey(key), (acc) =>
-                        setPrice(symbol, acc.data)
+                        setPrice(product, acc.data)
                     );
                 });
                 console.log(`BRIDGE: subscribed to ${priceAccts.keys.length} instruments, ${(performance.now() - start) | 0} msec`);

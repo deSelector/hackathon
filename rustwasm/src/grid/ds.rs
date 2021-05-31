@@ -46,7 +46,7 @@ impl<'a> DataSource<'a> {
         match row {
             row if row < self.row_count => {
                 let index = self.get_cell_index(row, col);
-                let str_slice = &self.data[index..index + col.data_len];
+                let str_slice = &self.data[index..index + col.size];
                 let s = String::from_utf8_lossy(str_slice);
                 return Some(s.to_string());
             }

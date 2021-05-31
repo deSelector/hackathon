@@ -1,14 +1,32 @@
-import { Column } from "../core";
+import { Column, ColumnType, NUM_SIZE } from "../core";
 
-export function fill<T>(buffer: ArrayBuffer, data: T[], data_width: number, columns: Column[], getter: (data: T, col: Column) => number): Int8Array {
+export interface RawData {
+    [id: string]: string | number;
+}
+
+export function fill(buffer: ArrayBuffer, data: RawData[], data_width: number, columns: Column[], getter?: (buff: RawData, col: Column) => number | string): Int8Array {
     const array = new Int8Array(buffer, 0, data.length * data_width);
     const view = new DataView(array.buffer);
-    for (let row = 0, index = 0, dx = 0; row < data.length; row++, index += dx) {
-        dx = 0;
-        for (let col of columns) {
-            let v = getter(data[row], col);
-            view.setFloat64(index + col.data_offset, v);
-            dx += 8;
+    for (let row = 0, offset = 0; row < data.length; row++) {
+        try {
+            const buff = data[row];
+            for (let col of columns) {
+                let v = getter?.(buff, col) ?? buff[col.id];
+                if (col.col_type === ColumnType.String) {
+                    console.assert(typeof v === "string");
+                    const s = new TextEncoder().encode((v as string).substring(0, col.size ?? NUM_SIZE));
+                    array.set(s, offset);
+                    offset += col.size ?? NUM_SIZE;
+                } else {
+                    console.assert(typeof v === "number");
+                    view.setFloat64(offset, v as number);
+                    offset += NUM_SIZE;
+                }
+            }
+        } catch (error) {
+            console.error(
+                `${error}, offset=${offset}, buffer-size=${array.length}`
+            );
         }
     }
     return array;

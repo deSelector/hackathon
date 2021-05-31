@@ -11,7 +11,7 @@ pub struct Schema {
 }
 
 impl Schema {
-    pub fn get_col_by_id(&self, id: u32) -> Option<&Column> {
+    pub fn get_col_by_id(&self, id: &str) -> Option<&Column> {
         self.cols.iter().find(|o| o.id == id)
     }
 
@@ -28,11 +28,16 @@ impl Schema {
     }
 }
 
-pub fn assert_schema(schema: &Schema) {
-    for col in &schema.cols {
-        assert!(col.id > 0);
-        // ensure data size is defined for string columns
-        assert!(col.col_type != ColumnType::String || col.data_len > 0);
-        assert!(col.col_type == ColumnType::String || col.data_len == num_size())
+pub fn normalize_schema(schema: &mut Schema) {
+    let mut offset = 0_usize;
+    for col in &mut schema.cols {
+        assert!(col.id != "");
+        assert!(col.col_type == ColumnType::String || col.size == num_size());
+        col.data_offset = offset;
+        if col.col_type == ColumnType::String {
+            offset += col.size;
+        } else {
+            offset += num_size();
+        }
     }
 }

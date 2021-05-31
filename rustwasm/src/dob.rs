@@ -24,9 +24,7 @@ enum Side {
     Ask = 1,
 }
 
-enum Field {
-    CumSize = 3, // note: keep it in synch with column id schema config
-}
+const CUM_SIZE_COL_ID: &str = "cumSize"; // don't change it - used by the UI demo
 
 #[wasm_bindgen]
 #[derive(Default)]
@@ -83,9 +81,7 @@ impl DOB {
             &left_panel.1,
             &right_panel.1,
             left_panel.0.client_width(),
-            self.bid_schema
-                .get_col_by_id(Field::CumSize as u32)
-                .unwrap(),
+            self.bid_schema.get_col_by_id(CUM_SIZE_COL_ID).unwrap(),
         );
 
         for (grid, ds, side) in [&mut left_panel, &mut right_panel].iter_mut() {
@@ -102,10 +98,10 @@ impl DOB {
 
     fn set_schema(bid: &JsValue, ask: &JsValue) -> (Schema, Schema) {
         console_error_panic_hook::set_once();
-        let bid_schema = bid.into_serde::<Schema>().unwrap();
-        assert_schema(&bid_schema);
+        let mut bid_schema = bid.into_serde::<Schema>().unwrap();
+        normalize_schema(&mut bid_schema);
         let mut ask_schema = ask.into_serde::<Schema>().unwrap();
-        assert_schema(&ask_schema);
+        normalize_schema(&mut ask_schema);
         for mut col in &mut ask_schema.cols {
             col.align = "left".to_string();
         }
@@ -137,11 +133,7 @@ impl DOB {
         if ds.row_count == 0 {
             return;
         }
-        let cum_col = gr
-            .schema
-            .unwrap()
-            .get_col_by_id(Field::CumSize as u32)
-            .unwrap();
+        let cum_col = gr.schema.unwrap().get_col_by_id(CUM_SIZE_COL_ID).unwrap();
         let ctx = gr.get_ctx();
         ctx.save();
 

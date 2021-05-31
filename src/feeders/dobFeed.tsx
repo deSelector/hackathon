@@ -1,4 +1,4 @@
-import { fill } from "../context";
+import { fill, RawData } from "../context";
 import { calcDataWidth, Column, ColumnType, Schema } from "../core";
 
 let bid_buffer: ArrayBuffer;
@@ -6,42 +6,39 @@ let ask_buffer: ArrayBuffer;
 let raw_data: Quote[];
 
 const ROW_COUNT = 30;
+const CUM_SIZE_COL_ID = "cumSize"; // don't change it - used by the grid component
 
-interface Quote {
+interface Quote extends RawData {
   price: number;
   size: number;
   time: number;
 }
 
 const sizeCol = {
-  id: 1,
+  id: "size",
   name: "Size",
   col_type: ColumnType.Number,
-  data_offset: 8,
   precision: 3,
 } as Column;
 
 const priceCol = {
-  id: 2,
+  id: "price",
   name: "Price",
   col_type: ColumnType.Number,
-  data_offset: 0,
   precision: 5,
 } as Column;
 
 const cumSizeCol = {
-  id: 3, // do not change it - used by the rust component
+  id: CUM_SIZE_COL_ID,
   name: "CumSize",
   col_type: ColumnType.Number,
-  data_offset: 16,
   hidden: true,
 } as Column;
 
 const timeCol = {
-  id: 4,
+  id: "time",
   name: "Time",
   col_type: ColumnType.Timestamp,
-  data_offset: 24,
   hidden: true,
 } as Column;
 
@@ -77,24 +74,14 @@ export function generateDOBData(): {
 
   function toBuffer(buffer: ArrayBuffer, data: Quote[]) {
     let sum = 0;
-    return fill<Quote>(
+    return fill(
       buffer,
       data,
       data_width,
       bidSchema.cols,
-      (data: Quote, col: Column) => {
-        switch (col.id) {
-          case 2:
-            return data.price;
-          case 1:
-            return data.size;
-          case 3:
-            return (sum += data.size);
-          case 4:
-            return data.time;
-          default:
-            return 0;
-        }
+      (data: RawData, col: Column) => {
+        const v = data[col.id];
+        return col.id === CUM_SIZE_COL_ID ? (sum += v as number) : v;
       }
     );
   }
