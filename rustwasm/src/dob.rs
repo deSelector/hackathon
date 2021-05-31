@@ -61,12 +61,12 @@ impl DOB {
         let ctx = &ctx(&self.id);
 
         let mut left_panel = (
-            GridCore::new(ctx, &self.bid_schema, left, top, width / 2, height),
+            GridRenderer::new(ctx, &self.bid_schema, left, top, width / 2, height),
             DataSource::new(bids, data_width),
             Side::Bid,
         );
         let mut right_panel = (
-            GridCore::new(
+            GridRenderer::new(
                 ctx,
                 &self.ask_schema,
                 left + width / 2 + 1,
@@ -108,28 +108,26 @@ impl DOB {
 }
 
 impl DOB {
-    fn render_book(&self, grid: &GridCore, ds: &DataSource, side: Side) {
-        let dx = grid.left();
-        let ts_col = grid.get_col_by_type(ColumnType::Timestamp).unwrap();
+    fn render_book(&self, gr: &GridRenderer, ds: &DataSource, side: Side) {
+        let dx = gr.left();
+        let ts_col = gr.get_col_by_type(ColumnType::Timestamp).unwrap();
         let align = self.cell_align(side); // todo: add align to schema and remove
 
-        for r in 0_usize.. {
-            let y = grid.top() + ((r + HEADER_LINES) * grid.row_height) as f64;
-            if y < grid.bottom() && r < ds.row_count {
+        for row in 0_usize.. {
+            let y = gr.top() + ((row + HEADER_LINES) * gr.row_height) as f64;
+            if y < gr.bottom() && row < ds.row_count {
                 let mut i = 0;
-                for col in &grid.schema.unwrap().cols {
+                for col in &gr.schema.unwrap().cols {
                     if !col.hidden {
-                        let x = dx + grid.cell_x(i);
-                        let v = GridCore::get_value_f64(ds, r, col).unwrap_or_default();
+                        let x = dx + gr.cell_x(i);
+                        let v = ds.get_value_f64(row, col).unwrap_or_default();
 
-                        let hi = grid.is_highlight(
-                            GridCore::get_value_f64(ds, r, ts_col).unwrap_or_default(),
-                        );
-                        grid.fill_text_aligned(
+                        let hi = gr.is_highlight(ds.get_value_f64(row, ts_col).unwrap_or_default());
+                        gr.fill_text_aligned(
                             &format_args!("{:.*}", col.precision, v).to_string(),
                             x,
                             y,
-                            grid.col_width(),
+                            gr.col_width(),
                             align,
                             hi,
                         );
@@ -161,21 +159,21 @@ impl DOB {
         };
     }
 
-    fn render_pyramid(&self, grid: &GridCore, ds: &DataSource, side: Side, ratio: f64) {
+    fn render_pyramid(&self, gr: &GridRenderer, ds: &DataSource, side: Side, ratio: f64) {
         if ds.row_count == 0 {
             return;
         }
-        let cum_col = grid.get_col_by_id(Field::CumSize as u32).unwrap();
-        let ctx = grid.get_ctx();
+        let cum_col = gr.get_col_by_id(Field::CumSize as u32).unwrap();
+        let ctx = gr.get_ctx();
         ctx.save();
 
-        for r in 0_usize.. {
-            let y = grid.top() + ((r + HEADER_LINES) * grid.row_height) as f64;
-            if y < grid.bottom() && r < ds.row_count {
-                let len = GridCore::get_value_f64(ds, r, cum_col).unwrap_or_default() * ratio;
+        for row in 0_usize.. {
+            let y = gr.top() + ((row + HEADER_LINES) * gr.row_height) as f64;
+            if y < gr.bottom() && row < ds.row_count {
+                let len = ds.get_value_f64(row, cum_col).unwrap_or_default() * ratio;
                 let x = match side {
-                    Side::Bid => grid.right() - len,
-                    Side::Ask => grid.left(),
+                    Side::Bid => gr.right() - len,
+                    Side::Ask => gr.left(),
                 };
 
                 let color = match side {
@@ -183,7 +181,7 @@ impl DOB {
                     Side::Ask => "#ff3b6960",
                 };
 
-                fill_rect(ctx, x, y, len, grid.row_height as f64, color);
+                fill_rect(ctx, x, y, len, gr.row_height as f64, color);
             } else {
                 break;
             }
@@ -202,6 +200,6 @@ impl DOB {
     }
 
     fn get_max_cum_size(&self, ds: &DataSource, col: &Column) -> f64 {
-        GridCore::get_value_f64(ds, ds.row_count - 1, col).unwrap_or_default()
+        ds.get_value_f64(ds.row_count - 1, col).unwrap_or_default()
     }
 }

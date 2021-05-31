@@ -106,8 +106,12 @@ export function fill<T>(
   const array = new Int8Array(buffer, 0, quotes.length * data_width);
   const view = new DataView(array.buffer);
 
-  for (let r = 0, index = 0, dx = 0; r < quotes.length; r++, index += dx) {
-    const row_data = quotes[r];
+  for (
+    let row = 0, index = 0, dx = 0;
+    row < quotes.length;
+    row++, index += dx
+  ) {
+    const row_data = quotes[row];
     dx = 0;
     for (let col of columns) {
       const v = getter(row_data, col);

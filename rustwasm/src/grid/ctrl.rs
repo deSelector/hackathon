@@ -41,10 +41,8 @@ impl Grid {
         width: u32,
         height: u32,
     ) {
-        let ctx = &ctx(&self.id);
-        let ds = &DataSource::new(data, data_width);
-        let mut grid = GridCore::new(ctx, &self.schema, left, top, width, height);
-        grid.render(ds);
+        GridRenderer::new(&ctx(&self.id), &self.schema, left, top, width, height)
+            .render(&DataSource::new(data, data_width));
     }
 
     fn set_schema(obj: &JsValue) -> Schema {

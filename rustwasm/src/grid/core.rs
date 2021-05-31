@@ -2,7 +2,6 @@
 use super::ctx2d::*;
 use super::ds::*;
 use crate::grid::schema::*;
-use byteorder::{BigEndian, ByteOrder};
 
 use js_sys::Date;
 use std::f64;
@@ -31,7 +30,7 @@ pub const fn num_size() -> usize {
 }
 
 #[derive(Default)]
-pub struct GridCore<'a> {
+pub struct GridRenderer<'a> {
     ctx: Option<&'a CanvasRenderingContext2d>,
     pub schema: Option<&'a Schema>,
     pub row_height: usize,
@@ -43,7 +42,7 @@ pub struct GridCore<'a> {
     col_width: f64, // todo: use col widths later
 }
 
-impl<'a> GridCore<'a> {
+impl<'a> GridRenderer<'a> {
     pub fn new(
         ctx: &'a CanvasRenderingContext2d,
         schema: &'a Schema,
@@ -51,8 +50,8 @@ impl<'a> GridCore<'a> {
         top: u32,
         width: u32,
         height: u32,
-    ) -> GridCore<'a> {
-        GridCore {
+    ) -> GridRenderer<'a> {
+        GridRenderer {
             ctx: Some(ctx),
             schema: Some(schema),
             left,
@@ -157,14 +156,12 @@ impl<'a> GridCore<'a> {
     pub fn render_data(&self, ds: &DataSource) {
         let ts_col = self.get_col_by_type(ColumnType::Timestamp);
 
-        for r in 0_usize.. {
-            let y = self.top() + ((r + HEADER_LINES) * self.row_height) as f64;
+        for row in 0_usize.. {
+            let y = self.top() + ((row + HEADER_LINES) * self.row_height) as f64;
 
-            if y < self.bottom() as f64 && r < ds.row_count {
+            if y < self.bottom() as f64 && row < ds.row_count {
                 let highlight = if ts_col.is_some() {
-                    self.is_highlight(
-                        GridCore::get_value_f64(ds, r, ts_col.unwrap()).unwrap_or_default(),
-                    )
+                    self.is_highlight(ds.get_value_f64(row, ts_col.unwrap()).unwrap_or_default())
                 } else {
                     false
                 };
@@ -173,7 +170,7 @@ impl<'a> GridCore<'a> {
                 for col in &self.schema.unwrap().cols {
                     if !col.hidden {
                         let x = self.left() + self.cell_x(index);
-                        self.fill_text_formatted(ds, r, x, y, col, highlight);
+                        self.fill_text_formatted(ds, row, x, y, col, highlight);
                         index += 1;
                     }
                 }
@@ -186,7 +183,7 @@ impl<'a> GridCore<'a> {
     fn fill_text_formatted(
         &self,
         ds: &DataSource,
-        r: usize,
+        row: usize,
         x: f64,
         y: f64,
         col: &Column,
@@ -197,10 +194,10 @@ impl<'a> GridCore<'a> {
         let v = match col.col_type {
             ColumnType::String => {
                 align = "left";
-                GridCore::cell_value_str(ds, r, col).unwrap_or("?".to_string())
+                ds.get_value_str(row, col).unwrap_or("?".to_string())
             }
             _ => {
-                let val = GridCore::get_value_f64(ds, r, col).unwrap_or_default();
+                let val = ds.get_value_f64(row, col).unwrap_or_default();
                 format_value(val, col)
             }
         };
@@ -259,45 +256,9 @@ impl<'a> GridCore<'a> {
     }
 }
 
-impl<'a> GridCore<'a> {
-    pub fn cell_value_str(ds: &DataSource, row: usize, col: &Column) -> Option<String> {
-        match row {
-            row if row < ds.row_count => {
-                let index = GridCore::get_cell_index(ds, row, col);
-                let str_slice = &ds.data[index..index + col.data_len]; // todo
-                let s = String::from_utf8_lossy(str_slice);
-                return Some(s.to_string());
-            }
-            _ => None,
-        }
-    }
-
-    pub fn get_value_f64(ds: &DataSource, row: usize, col: &Column) -> Option<f64> {
-        match row {
-            row if row < ds.row_count && ds.data.len() > 0 => {
-                let index = GridCore::get_cell_index(ds, row, col);
-                // note: potential performance impact - verify.
-                let v = BigEndian::read_f64(&ds.data[index..index + num_size()]);
-                Some(v)
-            }
-            _ => None,
-        }
-    }
-
+impl<'a> GridRenderer<'a> {
     pub fn cell_x(&self, index: usize) -> f64 {
         index as f64 * self.col_width()
-    }
-
-    pub fn get_cell_index(ds: &DataSource, row: usize, col: &Column) -> usize {
-        let index = row * ds.data_width + col.data_offset;
-        assert_lt!(
-            index,
-            ds.data.len(),
-            "buffer index {} out of bounds {}",
-            index,
-            ds.data.len()
-        );
-        index
     }
 
     pub fn get_col_by_type(&self, col_type: ColumnType) -> Option<&Column> {
@@ -313,7 +274,7 @@ impl<'a> GridCore<'a> {
     }
 }
 
-impl<'a> GridCore<'a> {
+impl<'a> GridRenderer<'a> {
     pub fn get_ctx(&self) -> &CanvasRenderingContext2d {
         self.ctx.unwrap()
     }
