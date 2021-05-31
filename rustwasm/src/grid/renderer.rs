@@ -30,6 +30,11 @@ pub const fn num_size() -> usize {
     std::mem::size_of::<f64>()
 }
 
+pub fn is_highlighted(time: f64) -> bool {
+    let now = Date::new_0().get_time() as i64;
+    now - time as i64 <= HIGHLIGHT_DURATION
+}
+
 #[derive(Default)]
 pub struct GridRenderer<'a> {
     ctx: Option<&'a CanvasRenderingContext2d>,
@@ -156,9 +161,9 @@ impl<'a> GridRenderer<'a> {
         for row in 0_usize.. {
             let y = self.top() + ((row + HEADER_LINES) * self.row_height) as f64;
 
-            if y < self.bottom() as f64 && row < ds.row_count {
+            if y < self.bottom() && row < ds.row_count {
                 let highlight = if ts_col.is_some() {
-                    self.is_highlight(ds.get_value_f64(row, ts_col.unwrap()).unwrap_or_default())
+                    is_highlighted(ds.get_value_f64(row, ts_col.unwrap()).unwrap_or_default())
                 } else {
                     false
                 };
@@ -184,13 +189,17 @@ impl<'a> GridRenderer<'a> {
         col: &Column,
         highlight: bool,
     ) {
-        let mut align = "right";
+        let align = match col.align.as_str() {
+            "" => match col.col_type {
+                ColumnType::String => "left",
+                ColumnType::Date | ColumnType::DateTime | ColumnType::Timestamp => "center",
+                _ => "right",
+            },
+            _ => col.align.as_str(),
+        };
 
         let v = match col.col_type {
-            ColumnType::String => {
-                align = "left";
-                ds.get_value_str(row, col).unwrap_or("?".to_string())
-            }
+            ColumnType::String => ds.get_value_str(row, col).unwrap_or("?".to_string()),
             _ => {
                 let val = ds.get_value_f64(row, col).unwrap_or_default();
                 col.format_value(val)
@@ -200,12 +209,7 @@ impl<'a> GridRenderer<'a> {
         self.render_text_aligned(&v, x, y, self.col_width(), align, highlight);
     }
 
-    pub fn is_highlight(&self, time: f64) -> bool {
-        let now = Date::new_0().get_time() as i64;
-        now - time as i64 <= HIGHLIGHT_DURATION
-    }
-
-    pub fn render_highlight(&self, x: f64, y: f64, width: f64, time: f64) {
+    pub fn _render_highlight(&self, x: f64, y: f64, width: f64, time: f64) {
         let ctx = self.get_ctx();
         let now = Date::new_0().get_time() as i64;
         if now - time as i64 <= HIGHLIGHT_DURATION {

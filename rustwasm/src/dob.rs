@@ -90,10 +90,10 @@ impl DOB {
 
         for (grid, ds, side) in [&mut left_panel, &mut right_panel].iter_mut() {
             grid.calc_col_width();
-            grid.render_gridlines(&ds);
+            grid.render_gridlines(ds);
 
             grid.clip_begin();
-            self.render_book(grid, ds, *side);
+            grid.render_data(ds);
             self.render_pyramid(grid, ds, *side, ratio);
             grid.render_header();
             grid.clip_end();
@@ -104,46 +104,16 @@ impl DOB {
         console_error_panic_hook::set_once();
         let bid_schema = bid.into_serde::<Schema>().unwrap();
         assert_schema(&bid_schema);
-        let ask_schema = ask.into_serde::<Schema>().unwrap();
+        let mut ask_schema = ask.into_serde::<Schema>().unwrap();
         assert_schema(&ask_schema);
+        for mut col in &mut ask_schema.cols {
+            col.align = "left".to_string();
+        }
         (bid_schema, ask_schema)
     }
 }
 
 impl DOB {
-    fn render_book(&self, gr: &GridRenderer, ds: &DataSource, side: Side) {
-        let dx = gr.left();
-        let ts_col = gr
-            .schema
-            .unwrap()
-            .get_col_by_type(ColumnType::Timestamp)
-            .unwrap();
-        let align = self.cell_align(side); // todo: add align to schema and remove
-
-        for row in 0_usize.. {
-            let y = gr.top() + ((row + HEADER_LINES) * gr.row_height) as f64;
-            if y < gr.bottom() && row < ds.row_count {
-                let mut i = 0;
-                for col in gr.schema.unwrap().get_visible_cols() {
-                    let x = dx + gr.cell_x(i);
-                    let v = ds.get_value_f64(row, col).unwrap_or_default();
-                    let hi = gr.is_highlight(ds.get_value_f64(row, ts_col).unwrap_or_default());
-                    gr.render_text_aligned(
-                        &format_args!("{:.*}", col.precision, v).to_string(),
-                        x,
-                        y,
-                        gr.col_width(),
-                        align,
-                        hi,
-                    );
-                    i += 1;
-                }
-            } else {
-                break;
-            }
-        }
-    }
-
     fn calc_bid_ask_ratio(
         &self,
         left_ds: &DataSource,
@@ -196,15 +166,6 @@ impl DOB {
         }
 
         ctx.restore();
-    }
-}
-
-impl DOB {
-    fn cell_align(&self, side: Side) -> &str {
-        match side {
-            Side::Bid => "right",
-            Side::Ask => "left",
-        }
     }
 
     fn get_max_cum_size(&self, ds: &DataSource, col: &Column) -> f64 {

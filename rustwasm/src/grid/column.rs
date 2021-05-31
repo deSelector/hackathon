@@ -28,6 +28,8 @@ pub struct Column {
     pub precision: usize,
     #[serde(default)]
     pub hidden: bool,
+    #[serde(default)]
+    pub align: String, // "left", "center", "right"
 }
 
 impl Default for ColumnType {
@@ -37,7 +39,7 @@ impl Default for ColumnType {
 }
 
 impl Column {
-    pub fn cell_precision(&self) -> usize {
+    pub fn precision(&self) -> usize {
         match self.col_type {
             ColumnType::Number => self.precision,
             _ => 0,
@@ -50,7 +52,7 @@ impl Column {
                 .timestamp(value as i64 / 1000, 0)
                 .format("%r")
                 .to_string(),
-            ColumnType::Number => format_args!("{:.*}", self.cell_precision(), value).to_string(),
+            ColumnType::Number => format_args!("{:.*}", self.precision(), value).to_string(),
             _ => value.to_string(),
         }
     }
