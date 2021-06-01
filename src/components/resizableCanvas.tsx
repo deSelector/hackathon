@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import useResizeObserver from "../hooks/useResizeObserver";
 import "./styles.scss";
-
+import React from "react";
 export interface ResizableCanvasProps {
   id: string;
   onResize: ({ width, height }: { width: number; height: number }) => void;

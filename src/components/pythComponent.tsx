@@ -3,7 +3,7 @@ import { useAnimationFrame } from "../hooks/useAnimationFrame";
 import { useRustWasm } from "../hooks";
 import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
-
+import React from "react";
 import { pythSchema, generatePythData } from "../feeders";
 
 const UPDATE_FREQ = 50;

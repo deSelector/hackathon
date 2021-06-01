@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from "react";
 import { increaseAction, useCounterReducer } from "../reducers/counterReducer";
 import { initialState, State } from "./state";
-
+import React from "react";
 const DataContext = createContext<State>(initialState);
 
 export const useDataContext = () => useContext(DataContext);

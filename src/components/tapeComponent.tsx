@@ -1,5 +1,5 @@
 /// <reference path="./../../rustwasm/pkg/rustwasm.d.ts"/>
-
+import React from "react";
 import { useState } from "react";
 import { useAnimationFrame } from "../hooks/useAnimationFrame";
 import { useRustWasm } from "../hooks";

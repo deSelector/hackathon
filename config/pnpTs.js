@@ -1,33 +1,33 @@
-const { resolveModuleName } = require('ts-pnp');
+const { resolveModuleName } = require("ts-pnp");
 
 exports.resolveModuleName = (
-    typescript,
+  typescript,
+  moduleName,
+  containingFile,
+  compilerOptions,
+  resolutionHost
+) => {
+  return resolveModuleName(
     moduleName,
     containingFile,
     compilerOptions,
-    resolutionHost
-) => {
-    return resolveModuleName(
-        moduleName,
-        containingFile,
-        compilerOptions,
-        resolutionHost,
-        typescript.resolveModuleName
-    );
+    resolutionHost,
+    typescript.resolveModuleName
+  );
 };
 
 exports.resolveTypeReferenceDirective = (
-    typescript,
+  typescript,
+  moduleName,
+  containingFile,
+  compilerOptions,
+  resolutionHost
+) => {
+  return resolveModuleName(
     moduleName,
     containingFile,
     compilerOptions,
-    resolutionHost
-) => {
-    return resolveModuleName(
-        moduleName,
-        containingFile,
-        compilerOptions,
-        resolutionHost,
-        typescript.resolveTypeReferenceDirective
-    );
+    resolutionHost,
+    typescript.resolveTypeReferenceDirective
+  );
 };

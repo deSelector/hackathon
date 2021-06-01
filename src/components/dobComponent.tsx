@@ -6,6 +6,7 @@ import "./styles.scss";
 import classnames from "classnames";
 // import { useDataContext } from "../context";
 import { dobSchema, generateDOBData } from "../feeders";
+import React from "react";
 
 const frequencies = [0, 100, 500, 1000, 10000];
 

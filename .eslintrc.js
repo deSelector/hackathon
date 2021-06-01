@@ -20,12 +20,12 @@ module.exports = {
         "@typescript-eslint"
     ],
     rules: {
-        "no-unused-vars": ["warn", { vars: "all", args: "none" }],
+        "no-unused-vars": ["off", { vars: "all", args: "none" }],
         "quote-props": ["warn", "as-needed"],
         // enable additional rules
-        indent: ["error", 2],
-        quotes: ["error", "double"],
-        semi: ["error", "always"],
+        indent: ["off", 2],
+        quotes: ["off", "double"],
+        semi: ["warn", "always"],
 
         // override configuration set by extending "eslint:recommended"
         "no-empty": "warn",
@@ -33,5 +33,6 @@ module.exports = {
 
         // disable rules from base configurations
         "for-direction": "off",
+        "no-undef": "off"
     }
 };

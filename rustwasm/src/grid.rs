@@ -4,3 +4,4 @@ pub mod ctx2d;
 pub mod ds;
 pub mod renderer;
 pub mod schema;
+pub mod sparkline;

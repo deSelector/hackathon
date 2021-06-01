@@ -26,7 +26,7 @@ export const pythSchema: Schema = {
     },
     {
       id: "market_cap",
-      name: "Mkt Cap (Bln)",
+      name: "Mkt Cap ($B)",
       col_type: ColumnType.Number,
       precision: 3,
     },
