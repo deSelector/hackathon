@@ -5,6 +5,7 @@ import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 import React from "react";
 import { pythSchema, generatePythData } from "../feeders";
+import { CryptoInfo, cryptos } from "../feeders/unirest";
 
 const UPDATE_FREQ = 50;
 
@@ -26,9 +27,23 @@ export function PythComponent(props: PythComponentProps) {
     setGrid(wasm.Grid.new(id, pythSchema));
   }
 
+  const collectSparks = () => {
+    if (grid && !grid.has_sparks() && cryptos?.size) {
+      grid.set_sparks(
+        Array.from(cryptos).reduce(
+          (p, [key, value]: [string, CryptoInfo]) => (
+            (p[key] = value.market_data?.sparkline_7d?.price ?? []), p
+          ),
+          {} as { [key: string]: number[] }
+        )
+      );
+    }
+  };
+
   const tick = async () => {
     if (grid) {
       const [data, data_width] = await generatePythData();
+      collectSparks();
       grid.render(data, data_width, 0, 0, size.width, size.height);
     }
   };

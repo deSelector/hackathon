@@ -61,7 +61,7 @@ impl DOB {
 
         let mut bid_panel = (
             GridRenderer::new(ctx, &self.bid_schema, left, top, width / 2, height),
-            DataSource::new(bids, data_width),
+            DataSource::new(bids, data_width, None),
             Side::Bid,
         );
         let mut ask_panel = (
@@ -73,7 +73,7 @@ impl DOB {
                 width / 2,
                 height,
             ),
-            DataSource::new(asks, data_width),
+            DataSource::new(asks, data_width, None),
             Side::Ask,
         );
 

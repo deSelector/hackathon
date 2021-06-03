@@ -14,6 +14,7 @@ pub enum ColumnType {
     Date,
     DateTime,
     Timestamp,
+    Sparkline,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -56,6 +57,7 @@ impl Column {
                 .format("%r")
                 .to_string(),
             ColumnType::Number => format_args!("{:.*}", self.precision(), value).to_string(),
+            ColumnType::Sparkline => String::from(""),
             _ => value.to_string(),
         }
     }

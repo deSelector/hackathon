@@ -5,6 +5,9 @@ use web_sys::{
     CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlElement, Performance, Window,
 };
 
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
@@ -80,6 +83,12 @@ pub fn _perf_loop(title: &str, count: u32, cb: &dyn Fn()) -> f64 {
     let msec = _performance().now() - p1;
     _console_log!("PERFORMANCE: {} in {} msecs", title, msec);
     msec
+}
+
+pub fn hash_code(v: &str) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    v.hash(&mut hasher);
+    hasher.finish()
 }
 
 #[wasm_bindgen]

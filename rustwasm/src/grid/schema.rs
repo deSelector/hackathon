@@ -32,9 +32,13 @@ pub fn normalize_schema(schema: &mut Schema) {
     let mut offset = 0_usize;
     for col in &mut schema.cols {
         assert!(col.id != "");
-        assert!(col.col_type == ColumnType::String || col.size == num_size());
+        assert!(
+            col.col_type == ColumnType::String
+                || col.col_type == ColumnType::Sparkline
+                || col.size == num_size()
+        );
         col.data_offset = offset;
-        if col.col_type == ColumnType::String {
+        if col.col_type == ColumnType::String || col.col_type == ColumnType::Sparkline {
             offset += col.size;
         } else {
             offset += num_size();

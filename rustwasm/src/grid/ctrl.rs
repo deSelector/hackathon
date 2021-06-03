@@ -2,6 +2,7 @@ use super::ds::*;
 use super::renderer::*;
 use super::schema::*;
 use crate::utils::*;
+use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -19,6 +20,7 @@ macro_rules! _console_log {
 pub struct Grid {
     id: String,
     schema: Schema,
+    sparks: Sparks,
 }
 
 #[wasm_bindgen]
@@ -42,7 +44,7 @@ impl Grid {
         height: u32,
     ) {
         GridRenderer::new(&ctx(&self.id), &self.schema, left, top, width, height)
-            .render(&DataSource::new(data, data_width));
+            .render(&DataSource::new(data, data_width, Some(&self.sparks)));
     }
 
     fn set_schema(obj: &JsValue) -> Schema {
@@ -50,5 +52,20 @@ impl Grid {
         let mut schema = obj.into_serde::<Schema>().unwrap_or_default();
         normalize_schema(&mut schema);
         schema
+    }
+
+    pub fn set_sparks(&mut self, obj: &JsValue) {
+        console_error_panic_hook::set_once();
+        let temp = obj
+            .into_serde::<HashMap<String, Vec<f64>>>()
+            .unwrap_or_default();
+        self.sparks = Sparks::new();
+        for (key, val) in temp.iter() {
+            self.sparks.insert(hash_code(key), val.to_vec());
+        }
+    }
+
+    pub fn has_sparks(&self) -> bool {
+        self.sparks.len() > 0
     }
 }

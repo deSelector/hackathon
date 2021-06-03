@@ -3,6 +3,7 @@ use super::ctx2d::*;
 use super::ds::*;
 use crate::grid::column::*;
 use crate::grid::schema::*;
+use crate::grid::sparkline::*;
 
 use js_sys::Date;
 use std::f64;
@@ -179,6 +180,7 @@ impl<'a> GridRenderer<'a> {
                         col,
                         highlight && col.col_type != ColumnType::String,
                     );
+
                     index += 1;
                 }
             } else {
@@ -196,6 +198,11 @@ impl<'a> GridRenderer<'a> {
         col: &Column,
         highlight: bool,
     ) {
+        if col.col_type == ColumnType::Sparkline {
+            self.render_sparkline(ds, row, x, y, col);
+            return;
+        }
+
         let align = match col.align.as_str() {
             "" => match col.col_type {
                 ColumnType::String => "left",
@@ -206,7 +213,7 @@ impl<'a> GridRenderer<'a> {
         };
 
         let v = match col.col_type {
-            ColumnType::String => ds.get_value_str(row, col).unwrap_or("?".to_string()),
+            ColumnType::String => ds.get_value_str(row, col),
             _ => {
                 let val = ds.get_value_f64(row, col).unwrap_or_default();
                 col.format_value(val)
@@ -214,6 +221,21 @@ impl<'a> GridRenderer<'a> {
         };
 
         self.render_text_aligned(&v, x, y, self.col_width(), align, highlight);
+    }
+
+    fn render_sparkline(&self, ds: &DataSource, row: usize, x: f64, y: f64, col: &Column) {
+        let data = ds.get_sparkline(row, col);
+        if data.is_some() {
+            let mut ss = Sparkline::new();
+            ss.render(
+                self.get_ctx(),
+                x,
+                y,
+                self.col_width(),
+                self.row_height as f64,
+                &data.unwrap()[..],
+            );
+        }
     }
 
     pub fn _render_highlight(&self, x: f64, y: f64, width: f64, time: f64) {

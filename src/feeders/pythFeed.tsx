@@ -19,6 +19,12 @@ export const pythSchema: Schema = {
       precision: 5,
     },
     {
+      id: "sparkline",
+      name: "7d History",
+      col_type: ColumnType.Sparkline,
+      size: 10,
+    },
+    {
       id: "market_cap_rank",
       name: "Rank",
       col_type: ColumnType.Number,
@@ -66,8 +72,16 @@ export async function generatePythData(): Promise<[Int8Array, number]> {
     quotes,
     size,
     pythSchema.cols,
-    (data: PythQuote, col: Column) =>
-      col.id === "market_cap" ? data[col.id] / 1000000000 : data[col.id]
+    (data: PythQuote, col: Column) => {
+      switch (col.id) {
+        case "market_cap":
+          return data[col.id] / 1000000000;
+        case "sparkline":
+          return data.symbol; // works as the key to the sparks cache
+        default:
+          return data[col.id];
+      }
+    }
   );
 
   return [array, size];
