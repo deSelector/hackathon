@@ -1,4 +1,4 @@
-import { parseMappingData, parsePriceData, parseProductData, } from "@pythnetwork/client";
+import { parseMappingData, parsePriceData, parseProductData } from "@pythnetwork/client";
 import { Buffer } from "buffer";
 import { AccountInfo, Commitment, Connection, PublicKey } from "@solana/web3.js";
 import { RawData } from "../context";
@@ -12,12 +12,16 @@ export const priceMap = new Map<string, PythQuote>();
 let pending: Promise<AccountInfo<Buffer> | null>;
 
 export interface PythQuote extends RawData {
-    symbol: string;
-    description?: string;
-    asset?: string;
-    price?: number;
-    confidence?: number;
-    time?: number;
+  symbol: string;
+  description?: string;
+  asset?: string;
+  price?: number;
+  ath?: number;
+  ath_change_percentage?: number;
+  max_supply?: number;
+  circulating_supply?: number;
+  confidence?: number;
+  time?: number;
 }
 
 const setPrice = (product: any, buffer: Buffer) => {
@@ -29,19 +33,24 @@ const setPrice = (product: any, buffer: Buffer) => {
     symbol: nasdaq_symbol ?? cms_symbol ?? symbol,
     price,
     confidence,
-    time: Date.now(),
+    time: Date.now()
   } as PythQuote;
 
   const obj = priceMap.get(delta.symbol);
   if (obj) {
     Object.assign(obj, delta);
   } else {
-    const { name, market_cap_rank, market_data } = cryptos.get(delta.symbol) || {} as CryptoInfo;
+    const { name, market_cap_rank, market_data } = cryptos.get(delta.symbol) || ({} as CryptoInfo);
     priceMap.set(delta.symbol, {
       ...delta,
       description: name ?? description,
-      asset, market_cap_rank,
-      market_cap: market_data?.market_cap?.usd
+      asset,
+      market_cap_rank,
+      market_cap: market_data?.market_cap?.usd,
+      ath: market_data?.ath?.usd,
+      ath_change_percentage: market_data?.ath_change_percentage?.usd,
+      max_supply: market_data?.max_supply,
+      circulating_supply: market_data?.circulating_supply
     });
   }
 };
@@ -49,7 +58,6 @@ const setPrice = (product: any, buffer: Buffer) => {
 export async function init(): Promise<any> {
   conn = conn ?? new Connection(URL, "confirmed");
   if (!pending) {
-
     getCryptos();
 
     let start = performance.now();
@@ -67,9 +75,7 @@ export async function init(): Promise<any> {
           "confirmed"
         );
         console.log(`BRIDGE: loaded ${productAccts.keys.length} accounts, ${(performance.now() - start) | 0} msec`);
-        const products = productAccts.values.map((a) =>
-          parseProductData(Buffer.from(a.data))
-        );
+        const products = productAccts.values.map((a) => parseProductData(Buffer.from(a.data)));
         console.log(`BRIDGE: parsed ${products.length} products, ${(performance.now() - start) | 0} msec`, products);
         const priceAccts = await getAccounts(
           conn,
@@ -79,35 +85,36 @@ export async function init(): Promise<any> {
         priceAccts.keys.forEach((key, i) => {
           const { product } = products[i];
           setPrice(product, priceAccts.values[i].data);
-          conn.onAccountChange(new PublicKey(key), (acc) =>
-            setPrice(product, acc.data)
-          );
+          conn.onAccountChange(new PublicKey(key), (acc) => setPrice(product, acc.data));
         });
-        console.log(`BRIDGE: subscribed to ${priceAccts.keys.length} instruments, ${(performance.now() - start) | 0} msec`);
+        console.log(
+          `BRIDGE: subscribed to ${priceAccts.keys.length} instruments, ${(performance.now() - start) | 0} msec`
+        );
       }
     } catch (error) {
       console.error(error);
     }
   }
-
 }
 
 const getAccounts = async (connection: Connection, keys: string[], commitment: Commitment) => {
-  const accounts = await Promise.all(chunks(keys, 99)
-    .map((chunk) => getAccountsCore(connection, chunk, commitment)));
+  const accounts = await Promise.all(chunks(keys, 99).map((chunk) => getAccountsCore(connection, chunk, commitment)));
 
   return {
     keys,
-    values: accounts.map(a =>
-      a.values.filter(_ => _)
-        .map(acc => {
-          const { data, ...rest } = acc;
-          return {
-            ...rest,
-            data: Buffer.from(data[0], "base64"),
-          } as AccountInfo<Buffer>;
-        })
-    ).flat()
+    values: accounts
+      .map((a) =>
+        a.values
+          .filter((_) => _)
+          .map((acc) => {
+            const { data, ...rest } = acc;
+            return {
+              ...rest,
+              data: Buffer.from(data[0], "base64")
+            } as AccountInfo<Buffer>;
+          })
+      )
+      .flat()
   };
 };
 
@@ -126,6 +133,7 @@ const getAccountsCore = async (connection: Connection, keys: string[], commitmen
 };
 
 function chunks<T>(keys: T[], size: number): T[][] {
-  return Array.apply<number, T[], T[][]>(0, new Array(Math.ceil(keys.length / size)))
-    .map((_, index) => keys.slice(index * size, (index + 1) * size));
+  return Array.apply<number, T[], T[][]>(0, new Array(Math.ceil(keys.length / size))).map((_, index) =>
+    keys.slice(index * size, (index + 1) * size)
+  );
 }

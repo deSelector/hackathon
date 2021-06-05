@@ -10,6 +10,10 @@ export interface CryptoInfo {
   market_cap_rank?: number;
   market_data?: {
     market_cap?: { usd?: number };
+    ath?: { usd?: number };
+    ath_change_percentage?: { usd?: number };
+    max_supply?: number;
+    circulating_supply?: number;
     sparkline_7d: { price: number[] };
   };
 }
@@ -26,7 +30,7 @@ const cryptoMap = {
   "SOL/USD": "solana",
   "SRM/USD": "serum",
   "USDC/USD": "usd-coin",
-  "USDT/USD": "tether",
+  "USDT/USD": "tether"
 };
 export const cryptos = new Map<string, CryptoInfo>();
 
@@ -41,13 +45,13 @@ export async function getCrypto(id: string = "bitcoin"): Promise<CryptoInfo> {
       market_data: true,
       community_data: false,
       developer_data: false,
-      sparkline: true,
+      sparkline: true
     });
 
     req.headers({
       "x-rapidapi-key": "45d3d92d55msh910a04134367825p10bf61jsn665ea232afc4",
       "x-rapidapi-host": "coingecko.p.rapidapi.com",
-      useQueryString: true,
+      useQueryString: true
     });
 
     req.end(function (res: any) {
