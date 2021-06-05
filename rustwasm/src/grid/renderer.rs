@@ -47,6 +47,7 @@ pub struct GridRenderer<'a> {
     width: u32,
     height: u32,
     col_width: f64, // todo: use col widths later
+    top_index: usize,
 }
 
 impl<'a> GridRenderer<'a> {
@@ -96,7 +97,8 @@ impl<'a> GridRenderer<'a> {
         set_text_baseline(ctx, "middle");
     }
 
-    pub fn render(&mut self, ds: &DataSource) {
+    pub fn render(&mut self, ds: &DataSource, top_index: usize) {
+        self.top_index = top_index;
         self.calc_col_width();
         self.render_gridlines(ds);
         self.clip_begin();
@@ -114,11 +116,10 @@ impl<'a> GridRenderer<'a> {
 
         // Vertical lines.
         let mut index = 0;
+        let last_y = self.data_bottom(ds.row_count);
         for _col in self.schema.unwrap().get_visible_cols() {
             let x = self.left() + (index as f64 * self.col_width()).floor();
-            ctx.move_to(x, self.top());
-            ctx.line_to(x, self.bottom());
-            vertical_line(ctx, self.top(), self.bottom(), x);
+            vertical_line(ctx, self.top(), last_y, x);
             index += 1;
         }
 
@@ -126,7 +127,7 @@ impl<'a> GridRenderer<'a> {
         let mut j = 0;
         loop {
             let y = self.top() + (j * self.row_height) as f64;
-            if y < self.bottom() && j <= ds.row_count + HEADER_LINES {
+            if y < self.bottom() && j <= ds.row_count - self.top_index + HEADER_LINES {
                 horizontal_line(ctx, self.left(), self.right(), y);
                 j += 1;
             } else {
@@ -159,8 +160,9 @@ impl<'a> GridRenderer<'a> {
     pub fn render_data(&self, ds: &DataSource) {
         let ts_col = self.schema.unwrap().get_col_by_type(ColumnType::Timestamp);
 
-        for row in 0_usize.. {
-            let y = self.top() + ((row + HEADER_LINES) * self.row_height) as f64;
+        for row_index in 0_usize.. {
+            let y = self.top() + ((row_index + HEADER_LINES) * self.row_height) as f64;
+            let row = self.top_index + row_index;
 
             if y < self.bottom() && row < ds.row_count {
                 let highlight = if ts_col.is_some() {
@@ -312,6 +314,13 @@ impl<'a> GridRenderer<'a> {
     }
     pub fn bottom(&self) -> f64 {
         (self.top + self.height - self.margin) as f64 - 0.5
+    }
+    pub fn data_bottom(&self, row_count: usize) -> f64 {
+        std::cmp::min(
+            self.bottom() as usize,
+            self.top as usize + (row_count + HEADER_LINES) * self.row_height,
+        ) as f64
+            - 0.5
     }
     pub fn mid(&self) -> f64 {
         self.left() + ((self.client_width() / 2.0).round())

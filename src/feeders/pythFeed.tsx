@@ -57,7 +57,7 @@ export const pythSchema: Schema = {
   ],
 };
 
-export async function generatePythData(): Promise<[Int8Array, number]> {
+export async function generatePythData(): Promise<[Int8Array, number, number]> {
   // todo: move it outside of the loop?
   await init();
 
@@ -85,7 +85,7 @@ export async function generatePythData(): Promise<[Int8Array, number]> {
     }
   );
 
-  return [array, size];
+  return [array, size, quotes.length];
 }
 
 function sorter(a: PythQuote, b: PythQuote): number {

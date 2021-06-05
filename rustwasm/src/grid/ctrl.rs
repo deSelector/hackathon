@@ -21,6 +21,7 @@ pub struct Grid {
     id: String,
     schema: Schema,
     sparks: Sparks,
+    top_index: usize,
 }
 
 #[wasm_bindgen]
@@ -43,8 +44,10 @@ impl Grid {
         width: u32,
         height: u32,
     ) {
-        GridRenderer::new(&ctx(&self.id), &self.schema, left, top, width, height)
-            .render(&DataSource::new(data, data_width, Some(&self.sparks)));
+        GridRenderer::new(&ctx(&self.id), &self.schema, left, top, width, height).render(
+            &DataSource::new(data, data_width, Some(&self.sparks)),
+            self.top_index,
+        );
     }
 
     fn set_schema(obj: &JsValue) -> Schema {
@@ -67,5 +70,9 @@ impl Grid {
 
     pub fn has_sparks(&self) -> bool {
         self.sparks.len() > 0
+    }
+
+    pub fn set_top_index(&mut self, top_index: usize) {
+        self.top_index = top_index;
     }
 }

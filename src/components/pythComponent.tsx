@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useAnimationFrame } from "../hooks/useAnimationFrame";
 import { useRustWasm } from "../hooks";
 import { ResizableCanvas } from "./resizableCanvas";
@@ -15,6 +15,7 @@ export interface PythComponentProps {
 
 export function PythComponent(props: PythComponentProps) {
   const [id] = useState<string>(props.id ?? "pyth-canvas");
+  const [rowCount, setRowCount] = useState<number>(0);
   const [freq] = useState<number>(UPDATE_FREQ);
   const [grid, setGrid] = useState<any>(null);
   const [size, setSize] = useState<{ width?: number; height?: number }>({
@@ -42,7 +43,8 @@ export function PythComponent(props: PythComponentProps) {
 
   const tick = async () => {
     if (grid) {
-      const [data, data_width] = await generatePythData();
+      const [data, data_width, count] = await generatePythData();
+      setRowCount(count);
       collectSparks();
       grid.render(data, data_width, 0, 0, size.width, size.height);
     }
@@ -54,12 +56,27 @@ export function PythComponent(props: PythComponentProps) {
     }
   };
 
+  const onScroll = useCallback(
+    ({ top, left }) => {
+      if (grid) {
+        grid.set_top_index(top);
+      }
+    },
+    [grid]
+  );
+
   useAnimationFrame(freq, tick);
 
   return (
     <div className={"solana-wrapper"}>
       <img src={process.env.PUBLIC_URL + "/sol2.jpg"} alt="solana" />
-      <ResizableCanvas id={id} onResize={onResize} />
+      <ResizableCanvas
+        id={id}
+        onResize={onResize}
+        onScroll={onScroll}
+        rowCount={rowCount}
+        rowHeight={40}
+      />
     </div>
   );
 }
