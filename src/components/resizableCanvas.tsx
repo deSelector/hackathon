@@ -34,8 +34,8 @@ export const ResizableCanvas: React.FC<ResizableCanvasProps> = (
   const wheeled = useCallback(
     (e: WheelEvent) => {
       if (e.deltaY) {
-        const delta = Math.sign(e.deltaY) / 5;
-        top = Math.max(0, Math.min(top + delta, props.rowCount || 0));
+        const delta = Math.sign(e.deltaY) / 2;
+        top = Math.max(0, Math.min(top + delta, (props.rowCount || 0) - 1));
         props.onScroll?.({ top });
       }
     },
