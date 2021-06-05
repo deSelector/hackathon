@@ -12,7 +12,7 @@ use web_sys::CanvasRenderingContext2d;
 
 pub const HEADER_LINES: usize = 1;
 const HIGHLIGHT_DURATION: i64 = 100;
-const ROW_HEIGHT: usize = 30;
+const ROW_HEIGHT: usize = 40;
 const MARGIN: u32 = 0;
 
 #[wasm_bindgen]
@@ -172,14 +172,7 @@ impl<'a> GridRenderer<'a> {
                 let mut index = 0;
                 for col in self.schema.unwrap().get_visible_cols() {
                     let x = self.left() + self.cell_x(index);
-                    self.render_text_formatted(
-                        ds,
-                        row,
-                        x,
-                        y,
-                        col,
-                        highlight && col.col_type != ColumnType::String,
-                    );
+                    self.render_text_formatted(ds, row, x, y, col, highlight && col.highlight);
 
                     index += 1;
                 }

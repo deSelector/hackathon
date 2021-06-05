@@ -17,6 +17,7 @@ export const pythSchema: Schema = {
       name: "Price",
       col_type: ColumnType.Number,
       precision: 5,
+      highlight: true,
     },
     {
       id: "sparkline",
@@ -61,7 +62,7 @@ export async function generatePythData(): Promise<[Int8Array, number]> {
   await init();
 
   const size = calcDataWidth(pythSchema);
-  const quotes = Array.from(priceMap.values());
+  const quotes = Array.from(priceMap.values()).sort(sorter);
   const totalSize = quotes.length * size;
   if (buffer.byteLength < totalSize) {
     buffer = new ArrayBuffer(totalSize);
@@ -85,4 +86,10 @@ export async function generatePythData(): Promise<[Int8Array, number]> {
   );
 
   return [array, size];
+}
+
+function sorter(a: PythQuote, b: PythQuote): number {
+  return a.asset && b.asset && a.asset !== b.crypto
+    ? a.asset?.localeCompare(b.asset || "")
+    : a.symbol?.localeCompare(b.symbol);
 }

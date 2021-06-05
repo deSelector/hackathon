@@ -20,11 +20,13 @@ export const tradeSchema: Schema = {
       name: "Price",
       col_type: ColumnType.Number,
       precision: 5,
+      highlight: true,
     },
     {
       id: "size",
       name: "Size",
       col_type: ColumnType.Number,
+      highlight: true,
     },
     {
       id: "time",

@@ -21,6 +21,7 @@ export const dobSchema: Schema = {
       name: "Size",
       col_type: ColumnType.Number,
       precision: 3,
+      highlight: true,
     } as Column,
 
     {
@@ -28,6 +29,7 @@ export const dobSchema: Schema = {
       name: "Price",
       col_type: ColumnType.Number,
       precision: 5,
+      highlight: true,
     } as Column,
 
     {

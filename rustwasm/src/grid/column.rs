@@ -34,6 +34,8 @@ pub struct Column {
     pub hidden: bool,
     #[serde(default)]
     pub align: String, // "left", "center", "right"
+    #[serde(default)]
+    pub highlight: bool,
 }
 
 impl Default for ColumnType {
