@@ -8,7 +8,7 @@ import "./styles.scss";
 import classnames from "classnames";
 // import { useDataContext } from "../context";
 import { generateTradeData, tradeSchema } from "../feeders";
-import { FreqButtons } from "./freqButtons";
+import { Header } from "./header";
 
 const UPDATE_FREQ = 100;
 
@@ -53,7 +53,7 @@ export function TapeComponent(props: TapeComponentProps) {
 
   return (
     <div className={"tape-wrapper"}>
-      <FreqButtons value={freq} onChange={(v) => setFreq(v)} />
+      <Header value={freq} onChange={(v) => setFreq(v)} source={"simulated feed"} />
       <ResizableCanvas id={id} onResize={onResize} onScroll={onScroll} rowCount={rowCount} rowHeight={40} />
     </div>
   );

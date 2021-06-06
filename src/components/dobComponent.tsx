@@ -7,7 +7,7 @@ import classnames from "classnames";
 // import { useDataContext } from "../context";
 import { dobSchema, generateDOBData } from "../feeders";
 import React from "react";
-import { FreqButtons } from "./freqButtons";
+import { Header } from "./header";
 
 const UPDATE_FREQ = 100;
 
@@ -52,7 +52,7 @@ export function DOBComponent(props: DOBComponentProps) {
 
   return (
     <div className={"dob-wrapper"}>
-      <FreqButtons value={freq} onChange={(v) => setFreq(v)} />
+      <Header value={freq} onChange={(v) => setFreq(v)} source={"simulated feed"} />
       <ResizableCanvas id={id} onResize={onResize} onScroll={onScroll} rowCount={rowCount} rowHeight={40} />
     </div>
   );

@@ -6,6 +6,7 @@ import "./styles.scss";
 import React from "react";
 import { pythSchema, generatePythData } from "../feeders";
 import { CryptoInfo, cryptos } from "../feeders/unirest";
+import { Header } from "./header";
 
 const UPDATE_FREQ = 50;
 
@@ -62,6 +63,7 @@ export function PythComponent(props: PythComponentProps) {
   return (
     <div className={"solana-wrapper"}>
       <img src={process.env.PUBLIC_URL + "/sol2.jpg"} alt="solana" />
+      <Header value={freq} source={"Pyth on Solana (live) + CoinGecko (static)"} />
       <ResizableCanvas id={id} onResize={onResize} onScroll={onScroll} rowCount={rowCount} rowHeight={40} />
     </div>
   );

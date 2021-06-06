@@ -16,18 +16,51 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    .frequency-buttons {
+    .data-source-section {
         display: flex;
         flex-direction: row;
-        margin: 10px 10px 5px 10px;
-        align-self: center;
-        flex-wrap: wrap;
-        button {
-            cursor: pointer;
-            margin: 0px 2px;
-            &.selected {
-                background: #ff3b69;
-                color: white;
+        div {
+            color: orange;
+            font-style: italic;
+            font-size: 14px;
+            align-self: center;
+        }
+    }
+    .header-panel {
+        display: flex;
+        flex-direction: row;
+        align-content: flex-start;
+        justify-content: space-between;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        label {
+            color: gray;
+            margin: 0px;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 11px;
+            align-self: center;
+            margin-right: 5px;
+        }
+        .frequency-section {
+            display: flex;
+            flex-direction: row;
+            .frequency-buttons {
+                display: flex;
+                flex-direction: row;
+                align-self: center;
+                flex-wrap: wrap;
+                button {
+                    cursor: pointer;
+                    margin: 0px 2px;
+                    &.selected {
+                        background: #ff3b69;
+                        color: white;
+                    }
+                }
+            }
+            &.hidden {
+                display: none;
             }
         }
     }
@@ -78,9 +111,10 @@
     display: flex;
     overflow: hidden;
     justify-content: center;
-    align-items: center;
+    align-items: stretch;
     min-width: 0px;
     min-height: 0px;
+    width: 100%;
 }
 
 .tape-wrapper,
