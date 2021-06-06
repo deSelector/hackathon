@@ -7,8 +7,7 @@ import classnames from "classnames";
 // import { useDataContext } from "../context";
 import { dobSchema, generateDOBData } from "../feeders";
 import React from "react";
-
-const frequencies = [0, 100, 500, 1000, 10000];
+import { FreqButtons } from "./freqButtons";
 
 const UPDATE_FREQ = 100;
 
@@ -32,20 +31,6 @@ export function DOBComponent(props: DOBComponentProps) {
     setGrid(wasm.DOB.new(id, dobSchema));
   }
 
-  const buttons = () => {
-    return frequencies.map((value) => (
-      <button
-        key={value}
-        className={classnames({ selected: freq === value })}
-        title={`update frequency: ${value} msec`}
-        // onDoubleClick={() => setCounter(2)}
-        onClick={() => setFreq(value)}
-      >
-        {value}
-      </button>
-    ));
-  };
-
   const tick = () => {
     if (grid) {
       const { bids, asks, data_width, count } = generateDOBData();
@@ -67,7 +52,7 @@ export function DOBComponent(props: DOBComponentProps) {
 
   return (
     <div className={"dob-wrapper"}>
-      <div className="frequency-buttons">{buttons()}</div>
+      <FreqButtons value={freq} onChange={(v) => setFreq(v)} />
       <ResizableCanvas id={id} onResize={onResize} onScroll={onScroll} rowCount={rowCount} rowHeight={40} />
     </div>
   );

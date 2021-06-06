@@ -8,8 +8,7 @@ import "./styles.scss";
 import classnames from "classnames";
 // import { useDataContext } from "../context";
 import { generateTradeData, tradeSchema } from "../feeders";
-
-const frequencies = [0, 100, 500, 1000, 10000];
+import { FreqButtons } from "./freqButtons";
 
 const UPDATE_FREQ = 100;
 
@@ -33,20 +32,6 @@ export function TapeComponent(props: TapeComponentProps) {
     setGrid(wasm.Grid.new(id, tradeSchema));
   }
 
-  const buttons = () => {
-    return frequencies.map((value) => (
-      <button
-        key={value}
-        className={classnames({ selected: freq === value })}
-        title={`update frequency: ${value} msec`}
-        // onDoubleClick={() => setCounter(2)}
-        onClick={() => setFreq(value)}
-      >
-        {value}
-      </button>
-    ));
-  };
-
   const tick = () => {
     if (grid) {
       const [data, data_width, count] = generateTradeData();
@@ -68,7 +53,7 @@ export function TapeComponent(props: TapeComponentProps) {
 
   return (
     <div className={"tape-wrapper"}>
-      <div className="frequency-buttons">{buttons()}</div>
+      <FreqButtons value={freq} onChange={(v) => setFreq(v)} />
       <ResizableCanvas id={id} onResize={onResize} onScroll={onScroll} rowCount={rowCount} rowHeight={40} />
     </div>
   );
