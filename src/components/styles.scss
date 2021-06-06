@@ -41,6 +41,9 @@
             font-size: 11px;
             align-self: center;
             margin-right: 5px;
+            &::after {
+                content: ":";
+            }
         }
         .frequency-section {
             display: flex;
@@ -53,6 +56,7 @@
                 button {
                     cursor: pointer;
                     margin: 0px 2px;
+                    min-width: 25px;
                     &.selected {
                         background: #ff3b69;
                         color: white;
@@ -83,7 +87,6 @@
 #left-panel {
     flex: 0.5;
     @media (min-width: 800px) and (max-width: 1400px) {
-        // flex-direction: column;
         flex: 0.7;
     }
     @media (min-width: 1400px) {
@@ -115,12 +118,14 @@
     min-width: 0px;
     min-height: 0px;
     width: 100%;
+    img {
+        max-height: 150px;
+        align-self: center;
+    }
 }
 
 .tape-wrapper,
 .dob-wrapper,
 .solana-wrapper {
-    margin-left: 10px;
-    margin-right: 10px;
-    margin-bottom: 10px;
+    margin: 10px;
 }

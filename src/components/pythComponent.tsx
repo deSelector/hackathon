@@ -63,7 +63,7 @@ export function PythComponent(props: PythComponentProps) {
   return (
     <div className={"solana-wrapper"}>
       <img src={process.env.PUBLIC_URL + "/sol2.jpg"} alt="solana" />
-      <Header value={freq} source={"Pyth on Solana (live) + CoinGecko (static)"} />
+      <Header value={freq} title="Market" description={"LIVE Pyth on Solana + CoinGecko"} />
       <ResizableCanvas id={id} onResize={onResize} onScroll={onScroll} rowCount={rowCount} rowHeight={40} />
     </div>
   );

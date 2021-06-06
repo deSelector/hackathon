@@ -53,7 +53,7 @@ export function TapeComponent(props: TapeComponentProps) {
 
   return (
     <div className={"tape-wrapper"}>
-      <Header value={freq} onChange={(v) => setFreq(v)} source={"simulated feed"} />
+      <Header value={freq} onChange={(v) => setFreq(v)} title={"Trades"} description={"simulation"} />
       <ResizableCanvas id={id} onResize={onResize} onScroll={onScroll} rowCount={rowCount} rowHeight={40} />
     </div>
   );
