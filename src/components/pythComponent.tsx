@@ -20,7 +20,7 @@ export function PythComponent(props: PythComponentProps) {
   const [grid, setGrid] = useState<any>(null);
   const [size, setSize] = useState<{ width?: number; height?: number }>({
     width: 0,
-    height: 0,
+    height: 0
   });
 
   const wasm = useRustWasm();
@@ -32,9 +32,7 @@ export function PythComponent(props: PythComponentProps) {
     if (grid && !grid.has_sparks() && cryptos?.size) {
       grid.set_sparks(
         Array.from(cryptos).reduce(
-          (p, [key, value]: [string, CryptoInfo]) => (
-            (p[key] = value.market_data?.sparkline_7d?.price ?? []), p
-          ),
+          (p, [key, value]: [string, CryptoInfo]) => ((p[key] = value.market_data?.sparkline_7d?.price ?? []), p),
           {} as { [key: string]: number[] }
         )
       );
@@ -52,6 +50,7 @@ export function PythComponent(props: PythComponentProps) {
 
   const onResize = ({ width, height }: { width: number; height: number }) => {
     if (size.width !== width || size.height !== height) {
+      grid.set_top_index(0);
       setSize({ width, height });
     }
   };
@@ -70,13 +69,7 @@ export function PythComponent(props: PythComponentProps) {
   return (
     <div className={"solana-wrapper"}>
       <img src={process.env.PUBLIC_URL + "/sol2.jpg"} alt="solana" />
-      <ResizableCanvas
-        id={id}
-        onResize={onResize}
-        onScroll={onScroll}
-        rowCount={rowCount}
-        rowHeight={40}
-      />
+      <ResizableCanvas id={id} onResize={onResize} onScroll={onScroll} rowCount={rowCount} rowHeight={40} />
     </div>
   );
 }

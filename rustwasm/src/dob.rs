@@ -32,6 +32,7 @@ pub struct DOB {
     id: String,
     bid_schema: Schema,
     ask_schema: Schema,
+    top_index: usize,
 }
 
 #[wasm_bindgen]
@@ -85,6 +86,7 @@ impl DOB {
         );
 
         for (grid, ds, side) in [&mut bid_panel, &mut ask_panel].iter_mut() {
+            grid.set_top_index(self.top_index);
             grid.calc_col_width();
             grid.render_gridlines(ds);
 
@@ -107,6 +109,9 @@ impl DOB {
             col.align = "left".to_string();
         }
         (bid_schema, ask_schema)
+    }
+    pub fn set_top_index(&mut self, top_index: usize) {
+        self.top_index = top_index;
     }
 }
 
@@ -140,8 +145,9 @@ impl DOB {
 
         for row in 0_usize.. {
             let y = gr.top() + ((row + HEADER_LINES) * gr.row_height) as f64;
-            if y < gr.bottom() && row < ds.row_count {
-                let len = ds.get_value_f64(row, cum_col).unwrap_or_default() * ratio;
+            let index = self.top_index + row;
+            if y < gr.bottom() && index < ds.row_count {
+                let len = ds.get_value_f64(index, cum_col).unwrap_or_default() * ratio;
                 let x = match side {
                     Side::Bid => gr.right() - len,
                     Side::Ask => gr.left(),

@@ -98,7 +98,7 @@ impl<'a> GridRenderer<'a> {
     }
 
     pub fn render(&mut self, ds: &DataSource, top_index: usize) {
-        self.top_index = top_index;
+        self.set_top_index(top_index);
         self.calc_col_width();
         self.render_gridlines(ds);
         self.clip_begin();
@@ -294,11 +294,14 @@ impl<'a> GridRenderer<'a> {
     pub fn get_ctx(&self) -> &CanvasRenderingContext2d {
         self.ctx.unwrap()
     }
+    pub fn set_top_index(&mut self, top_index: usize) {
+        self.top_index = top_index;
+    }
     pub fn calc_col_width(&mut self) {
         let visible_count = self.schema.unwrap().get_visible_row_count();
         assert!(visible_count > 0);
-        // enforce min column width until we support horizontal scroll
-        self.col_width = std::cmp::max(120, self.client_width() as usize / visible_count) as f64;
+        // laziness: enforce min column width until we support horizontal scroll
+        self.col_width = std::cmp::max(100, self.client_width() as usize / visible_count) as f64;
     }
     pub fn col_width(&self) -> f64 {
         self.col_width

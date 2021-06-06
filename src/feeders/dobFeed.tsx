@@ -21,7 +21,7 @@ export const dobSchema: Schema = {
       name: "Size",
       col_type: ColumnType.Number,
       precision: 3,
-      highlight: true,
+      highlight: true
     } as Column,
 
     {
@@ -29,35 +29,36 @@ export const dobSchema: Schema = {
       name: "Price",
       col_type: ColumnType.Number,
       precision: 5,
-      highlight: true,
+      highlight: true
     } as Column,
 
     {
       id: CUM_SIZE_COL_ID,
       name: "CumSize",
       col_type: ColumnType.Number,
-      hidden: true,
+      hidden: true
     } as Column,
 
     {
       id: "time",
       name: "Time",
       col_type: ColumnType.Timestamp,
-      hidden: true,
-    } as Column,
-  ],
+      hidden: true
+    } as Column
+  ]
 };
 
 export function generateDOBData(): {
   bids: Int8Array;
   asks: Int8Array;
   data_width: number;
+  count: number;
 } {
   const item = () =>
     ({
       price: Math.random() * 20,
       size: Math.random() * 5,
-      time: Date.now(),
+      time: Date.now()
     } as Quote);
 
   const data_width = calcDataWidth(dobSchema);
@@ -73,13 +74,8 @@ export function generateDOBData(): {
 
   function toBuffer(buffer: ArrayBuffer, data: Quote[]) {
     let sum = 0;
-    return fill<Quote>(
-      buffer,
-      data,
-      data_width,
-      dobSchema.cols,
-      (data: Quote, col: Column) =>
-        col.id === CUM_SIZE_COL_ID ? (sum += data.size) : data[col.id]
+    return fill<Quote>(buffer, data, data_width, dobSchema.cols, (data: Quote, col: Column) =>
+      col.id === CUM_SIZE_COL_ID ? (sum += data.size) : data[col.id]
     );
   }
 
@@ -104,5 +100,6 @@ export function generateDOBData(): {
       raw_data.slice(bid_count).sort((a, b) => a.price - b.price)
     ),
     data_width,
+    count: ROW_COUNT
   };
 }
