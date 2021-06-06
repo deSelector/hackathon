@@ -8,6 +8,8 @@ pub struct Schema {
     pub cols: Vec<Column>,
     #[serde(default)]
     pub col_width: f64, // todo: switch to col-based widths
+    #[serde(default)]
+    pub visible_col_count: usize,
 }
 
 impl Schema {
@@ -42,6 +44,9 @@ pub fn normalize_schema(schema: &mut Schema) {
             offset += col.size;
         } else {
             offset += num_size();
+        }
+        if !col.hidden {
+            schema.visible_col_count += 1;
         }
     }
 }

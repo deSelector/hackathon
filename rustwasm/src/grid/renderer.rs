@@ -116,11 +116,16 @@ impl<'a> GridRenderer<'a> {
 
         // Vertical lines.
         let mut index = 0;
-        let last_y = self.data_bottom(ds.row_count);
-        for _col in self.schema.unwrap().get_visible_cols() {
+        let visible_col_count = self.schema.unwrap().visible_col_count;
+        let last_y = self.data_bottom(ds.row_count - self.top_index);
+        loop {
             let x = self.left() + (index as f64 * self.col_width()).floor();
-            vertical_line(ctx, self.top(), last_y, x);
-            index += 1;
+            if x < self.right() && index < visible_col_count {
+                vertical_line(ctx, self.top(), last_y, x);
+                index += 1;
+            } else {
+                break;
+            }
         }
 
         // Horizontal lines.
@@ -292,7 +297,8 @@ impl<'a> GridRenderer<'a> {
     pub fn calc_col_width(&mut self) {
         let visible_count = self.schema.unwrap().get_visible_row_count();
         assert!(visible_count > 0);
-        self.col_width = self.client_width() / visible_count as f64;
+        // enforce min column width until we support horizontal scroll
+        self.col_width = std::cmp::max(120, self.client_width() as usize / visible_count) as f64;
     }
     pub fn col_width(&self) -> f64 {
         self.col_width
