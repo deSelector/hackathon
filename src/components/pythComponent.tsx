@@ -50,19 +50,12 @@ export function PythComponent(props: PythComponentProps) {
 
   const onResize = ({ width, height }: { width: number; height: number }) => {
     if (size.width !== width || size.height !== height) {
-      grid.set_top_index(0);
+      grid?.set_top_index(0);
       setSize({ width, height });
     }
   };
 
-  const onScroll = useCallback(
-    ({ top, left }) => {
-      if (grid) {
-        grid.set_top_index(top);
-      }
-    },
-    [grid]
-  );
+  const onScroll = useCallback(({ top, left }) => grid?.set_top_index(top), [grid]);
 
   useAnimationFrame(freq, tick);
 

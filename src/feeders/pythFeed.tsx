@@ -103,7 +103,5 @@ export async function generatePythData(): Promise<[Int8Array, number, number]> {
 }
 
 function sorter(a: PythQuote, b: PythQuote): number {
-  return a.asset && b.asset && a.asset !== b.crypto
-    ? a.asset?.localeCompare(b.asset || "")
-    : a.symbol?.localeCompare(b.symbol);
+  return a.symbol?.localeCompare(b.symbol);
 }

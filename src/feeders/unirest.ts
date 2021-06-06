@@ -20,21 +20,39 @@ export interface CryptoInfo {
 }
 
 // there is a mismatch between pyth-based feed crypto ids and Coinbase database so we'll just preload a sample set instead
-const cryptoMap = {
-  "BCH/USD": "bitcoin-cash",
-  "BNB/USD": "binancecoin",
-  "BTC/USD": "bitcoin",
-  "DOGE/USD": "dogecoin",
-  "ETH/USD": "ethereum",
-  "LTC/USD": "litecoin",
-  "LUNA/USD": "terra-luna",
-  "SOL/USD": "solana",
-  "SRM/USD": "serum",
-  "USDC/USD": "usd-coin",
-  "USDT/USD": "tether"
-};
-export const cryptos = new Map<string, CryptoInfo>();
+const cryptoMap = [
+  "0x",
+  "1inch",
+  "algorand",
+  "binancecoin",
+  "bitcoin-cash",
+  "bitcoin",
+  "cardano",
+  "chainlink",
+  "dogecoin",
+  "enjincoin",
+  "ethereum",
+  "ftx-token",
+  "harmony",
+  "havven",
+  "holotoken",
+  "hxro",
+  "litecoin",
+  "oxygen",
+  "serum",
+  "solana",
+  "sushi",
+  "terra-luna",
+  "tether",
+  "the-graph",
+  "theta-token",
+  "uniswap",
+  "usd-coin",
+  "vechain",
+  "zilliqa"
+];
 
+export const cryptos = new Map<string, CryptoInfo>();
 export async function getCrypto(id: string = "bitcoin"): Promise<CryptoInfo> {
   return new Promise((resolve, reject) => {
     let req = unirest("GET", `https://coingecko.p.rapidapi.com/coins/${id}`);
@@ -67,7 +85,7 @@ export async function getCrypto(id: string = "bitcoin"): Promise<CryptoInfo> {
 }
 
 export async function fetchCryptos(ids?: string[]): Promise<void> {
-  ids = ids ?? Object.values(cryptoMap);
+  ids = ids ?? cryptoMap;
   (await Promise.all(ids.map(getCrypto))).map((o) => {
     const key = o.symbol?.toUpperCase() + "/USD";
     cryptos.set(key, { ...o, key });

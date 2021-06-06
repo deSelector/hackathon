@@ -24,37 +24,6 @@ export interface PythQuote extends RawData {
   time?: number;
 }
 
-const setPrice = (product: any, buffer: Buffer) => {
-  const data = parsePriceData(Buffer.from(buffer));
-  const { price, confidence } = data;
-  const { symbol, description, nasdaq_symbol, cms_symbol, asset_type: asset } = product;
-
-  const delta = {
-    symbol: nasdaq_symbol ?? cms_symbol ?? symbol,
-    price,
-    confidence,
-    time: Date.now()
-  } as PythQuote;
-
-  const obj = priceMap.get(delta.symbol);
-  if (obj) {
-    Object.assign(obj, delta);
-  } else {
-    const { name, market_cap_rank, market_data } = cryptos.get(delta.symbol) || ({} as CryptoInfo);
-    priceMap.set(delta.symbol, {
-      ...delta,
-      description: name ?? description,
-      asset,
-      market_cap_rank,
-      market_cap: market_data?.market_cap?.usd,
-      ath: market_data?.ath?.usd,
-      ath_change_percentage: market_data?.ath_change_percentage?.usd,
-      max_supply: market_data?.max_supply,
-      circulating_supply: market_data?.circulating_supply
-    });
-  }
-};
-
 export async function init(): Promise<any> {
   conn = conn ?? new Connection(URL, "confirmed");
   if (!pending) {
@@ -142,17 +111,44 @@ async function initCryptos(): Promise<any> {
   await fetchCryptos();
 
   cryptos.forEach((item) => {
-    const { name, market_cap_rank, market_data, key, description } = item;
-    priceMap.set(key, {
-      symbol: key,
-      description: description?.en,
-      asset: "Crypto",
-      market_cap_rank,
-      market_cap: market_data?.market_cap?.usd,
-      ath: market_data?.ath?.usd,
-      ath_change_percentage: market_data?.ath_change_percentage?.usd,
-      max_supply: market_data?.max_supply,
-      circulating_supply: market_data?.circulating_supply
-    });
+    const quote = createQuote(item);
+    priceMap.set(quote.key, { ...quote, asset: "Crypto" });
   });
+}
+
+const setPrice = (product: any, buffer: Buffer) => {
+  const data = parsePriceData(Buffer.from(buffer));
+  const { price, confidence } = data;
+  const { symbol, nasdaq_symbol, cms_symbol, asset_type: asset } = product;
+  const key = nasdaq_symbol ?? cms_symbol ?? symbol;
+  const delta = {
+    key,
+    symbol: key,
+    price,
+    confidence,
+    time: Date.now()
+  } as PythQuote;
+
+  const obj = priceMap.get(delta.symbol);
+  if (obj) {
+    Object.assign(obj, delta);
+  } else {
+    const quote = { ...createQuote(cryptos.get(delta.symbol) || ({} as CryptoInfo)), ...delta, asset } as PythQuote;
+    priceMap.set(quote.key, quote);
+  }
+};
+
+function createQuote(crypto: CryptoInfo): PythQuote {
+  const { market_cap_rank, market_data, key, description } = crypto;
+  return {
+    key,
+    symbol: key,
+    description: description?.en,
+    market_cap_rank,
+    market_cap: market_data?.market_cap?.usd,
+    ath: market_data?.ath?.usd,
+    ath_change_percentage: market_data?.ath_change_percentage?.usd,
+    max_supply: market_data?.max_supply,
+    circulating_supply: market_data?.circulating_supply
+  } as PythQuote;
 }
