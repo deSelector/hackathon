@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 import "./styles.scss";
 import React from "react";
-import { useWheelEvent, useResizeObserver } from "../hooks";
+import { useWheelEvent, useResizeObserver, useMouseLeaveEvent } from "../hooks";
 
 export interface ResizableCanvasProps {
   id: string;
@@ -34,8 +34,17 @@ export const ResizableCanvas: React.FC<ResizableCanvasProps> = (props: Resizable
     [canvas, onScroll, props.rowCount]
   );
 
+  const mouseLeft = useCallback(
+    (e: MouseEvent) => {
+      top = 0;
+      props.onScroll?.({ top });
+    },
+    [canvas, onScroll]
+  );
+
   useResizeObserver({ callback: resized, element: div });
   useWheelEvent(canvas, wheeled);
+  useMouseLeaveEvent(canvas, mouseLeft);
 
   return (
     <div ref={div} className={"canvas-wrapper"}>

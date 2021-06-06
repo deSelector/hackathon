@@ -1,6 +1,7 @@
 .app {
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
     height: 100%;
     flex: 1;
     @media (min-width: 1400px) {
@@ -69,8 +70,7 @@
         }
     }
     .canvas-wrapper {
-        width: 100%;
-        min-height: 100px;
+        min-height: 0px;
         display: flex;
         flex: 1;
     }
@@ -128,4 +128,14 @@
 .dob-wrapper,
 .solana-wrapper {
     margin: 10px;
+}
+
+canvas {
+    border: 1px solid transparent;
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: border-color 0.5s;
+    &:hover {
+        border-color: #ffffff44;
+    }
 }
