@@ -9,6 +9,7 @@ export interface Column {
   precision?: number;
   hidden?: boolean;
   highlight?: boolean;
+  suppress_zero?: boolean;
 }
 
 export enum ColumnType {
@@ -18,7 +19,7 @@ export enum ColumnType {
   Date,
   DateTime,
   Timestamp,
-  Sparkline,
+  Sparkline
 }
 
 export const NUM_SIZE = 8;

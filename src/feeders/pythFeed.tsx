@@ -17,7 +17,8 @@ export const pythSchema: Schema = {
       name: "Price",
       col_type: ColumnType.Number,
       precision: 5,
-      highlight: true
+      highlight: true,
+      suppress_zero: true
     },
     {
       id: "sparkline",
@@ -29,31 +30,36 @@ export const pythSchema: Schema = {
       id: "ath",
       name: "ATH",
       col_type: ColumnType.Number,
-      precision: 5
+      precision: 5,
+      suppress_zero: true
     },
     {
       id: "ath_change_percentage",
       name: "ATH % Chg",
       col_type: ColumnType.Number,
-      precision: 1
+      precision: 1,
+      suppress_zero: true
     },
     {
       id: "market_cap_rank",
       name: "Rank",
       col_type: ColumnType.Number,
-      precision: 0
+      precision: 0,
+      suppress_zero: true
     },
     {
       id: "market_cap",
       name: "Mkt Cap ($B)",
       col_type: ColumnType.Number,
-      precision: 3
+      precision: 3,
+      suppress_zero: true
     },
     {
       id: "max_supply",
       name: "Max Supply (M)",
       col_type: ColumnType.Number,
-      precision: 3
+      precision: 3,
+      suppress_zero: true
     },
     {
       id: "asset",

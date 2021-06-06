@@ -36,6 +36,8 @@ pub struct Column {
     pub align: String, // "left", "center", "right"
     #[serde(default)]
     pub highlight: bool,
+    #[serde(default)]
+    pub suppress_zero: bool, // switch to format later
 }
 
 impl Default for ColumnType {
@@ -58,7 +60,13 @@ impl Column {
                 .timestamp(value as i64 / 1000, 0)
                 .format("%r")
                 .to_string(),
-            ColumnType::Number => format_args!("{:.*}", self.precision(), value).to_string(),
+            ColumnType::Number => {
+                if value == 0.0 && self.suppress_zero {
+                    String::from("")
+                } else {
+                    format_args!("{:.*}", self.precision(), value).to_string()
+                }
+            }
             ColumnType::Sparkline => String::from(""),
             _ => value.to_string(),
         }
