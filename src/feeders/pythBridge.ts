@@ -2,7 +2,7 @@ import { parseMappingData, parsePriceData, parseProductData } from "@pythnetwork
 import { Buffer } from "buffer";
 import { AccountInfo, Commitment, Connection, PublicKey } from "@solana/web3.js";
 import { RawData } from "../context";
-import { cryptos, getCryptos, CryptoInfo } from "./unirest";
+import { cryptos, fetchCryptos, CryptoInfo } from "./unirest";
 
 const URL = "https://devnet.solana.com";
 const ORACLE_MAPPING_PUBLIC_KEY = new PublicKey("ArppEFcsybCLE8CRtQJLQ9tLv2peGmQoKWFuiUWm4KBP");
@@ -58,7 +58,7 @@ const setPrice = (product: any, buffer: Buffer) => {
 export async function init(): Promise<any> {
   conn = conn ?? new Connection(URL, "confirmed");
   if (!pending) {
-    getCryptos();
+    initCryptos();
 
     let start = performance.now();
     console.log("BRIDGE: initializing");
@@ -136,4 +136,23 @@ function chunks<T>(keys: T[], size: number): T[][] {
   return Array.apply<number, T[], T[][]>(0, new Array(Math.ceil(keys.length / size))).map((_, index) =>
     keys.slice(index * size, (index + 1) * size)
   );
+}
+
+async function initCryptos(): Promise<any> {
+  await fetchCryptos();
+
+  cryptos.forEach((item) => {
+    const { name, market_cap_rank, market_data, key, description } = item;
+    priceMap.set(key, {
+      symbol: key,
+      description: description?.en,
+      asset: "Crypto",
+      market_cap_rank,
+      market_cap: market_data?.market_cap?.usd,
+      ath: market_data?.ath?.usd,
+      ath_change_percentage: market_data?.ath_change_percentage?.usd,
+      max_supply: market_data?.max_supply,
+      circulating_supply: market_data?.circulating_supply
+    });
+  });
 }

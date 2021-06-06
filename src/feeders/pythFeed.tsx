@@ -91,7 +91,7 @@ export async function generatePythData(): Promise<[Int8Array, number, number]> {
       case "max_supply":
         return (data.max_supply ?? 0) / 1000000;
       case "market_cap":
-        return data.market_cap / 1000000000;
+        return (data.market_cap ?? 0) / 1000000000;
       case "sparkline":
         return data.symbol; // works as the key to the sparks cache
       default:

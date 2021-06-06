@@ -1,8 +1,8 @@
 import { useCallback, useRef } from "react";
-import useResizeObserver from "../hooks/useResizeObserver";
 import "./styles.scss";
 import React from "react";
-import { useWheelEvent } from "../hooks/useWheelEffect";
+import { useWheelEvent, useResizeObserver } from "../hooks";
+
 export interface ResizableCanvasProps {
   id: string;
   rowCount?: number;
@@ -11,9 +11,7 @@ export interface ResizableCanvasProps {
   onScroll?: ({ top, left }: { top?: number; left?: number }) => void;
 }
 
-export const ResizableCanvas: React.FC<ResizableCanvasProps> = (
-  props: ResizableCanvasProps
-) => {
+export const ResizableCanvas: React.FC<ResizableCanvasProps> = (props: ResizableCanvasProps) => {
   const { id, onResize, onScroll } = props;
   const div = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -21,13 +19,7 @@ export const ResizableCanvas: React.FC<ResizableCanvasProps> = (
 
   const resized = () => {
     if (div.current && canvas.current) {
-      onResize?.(
-        doResize(
-          canvas.current,
-          div.current.clientWidth,
-          div.current.clientHeight
-        )
-      );
+      onResize?.(doResize(canvas.current, div.current.clientWidth, div.current.clientHeight));
     }
   };
 
@@ -52,11 +44,7 @@ export const ResizableCanvas: React.FC<ResizableCanvasProps> = (
   );
 };
 
-function doResize(
-  canvas: HTMLCanvasElement,
-  width: number,
-  height: number
-): { width: number; height: number } {
+function doResize(canvas: HTMLCanvasElement, width: number, height: number): { width: number; height: number } {
   const scale = window.devicePixelRatio;
   canvas.width = Math.floor(width * scale);
   canvas.height = Math.floor(height * scale);

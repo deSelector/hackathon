@@ -3,9 +3,10 @@ var unirest = require("unirest");
 
 export interface CryptoInfo {
   id?: string;
+  key: string; // fix it, used to tie with pyth
   symbol?: string;
   name?: string;
-  description?: { en: string };
+  description?: { en?: string };
   image?: { thumb?: string; small?: string; large?: string };
   market_cap_rank?: number;
   market_data?: {
@@ -65,11 +66,11 @@ export async function getCrypto(id: string = "bitcoin"): Promise<CryptoInfo> {
   });
 }
 
-export async function getCryptos(ids?: string[]): Promise<CryptoInfo[]> {
+export async function fetchCryptos(ids?: string[]): Promise<void> {
   ids = ids ?? Object.values(cryptoMap);
-  const promises = ids.map(getCrypto);
-  const items = await Promise.all(promises);
-  items.map((o) => cryptos.set(o.symbol?.toUpperCase() + "/USD", o));
-  console.log(`CoinGecko: loaded ${items.length} cryptos`);
-  return items;
+  (await Promise.all(ids.map(getCrypto))).map((o) => {
+    const key = o.symbol?.toUpperCase() + "/USD";
+    cryptos.set(key, { ...o, key });
+  });
+  console.log(`CoinGecko: loaded ${cryptos.size} cryptos`);
 }

@@ -1,13 +1,11 @@
 import { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 
-const useResizeObserver = ({ callback, element }: { callback: ResizeObserverCallback, element: any }) => {
-
+export const useResizeObserver = ({ callback, element }: { callback: ResizeObserverCallback; element: any }) => {
   const current = element?.current;
   const observer = useRef<any>(null);
 
   useEffect(() => {
-
     const observe = () => {
       if (element?.current && observer?.current) {
         observer.current.observe(element.current);
@@ -31,7 +29,5 @@ const useResizeObserver = ({ callback, element }: { callback: ResizeObserverCall
 
 useResizeObserver.propTypes = {
   element: PropTypes.object,
-  callback: PropTypes.func,
+  callback: PropTypes.func
 };
-
-export default useResizeObserver;
