@@ -19,7 +19,7 @@ export function Header(props: HeaderProps) {
         <div>{props.description}</div>
       </div>
       <div className={classnames("frequency-section", { hidden: !props.onChange })}>
-        <label>{"delay:"}</label>
+        <label>{"delay (ms)"}</label>
         <div className="frequency-buttons">
           {frequencies.map((v) => (
             <button

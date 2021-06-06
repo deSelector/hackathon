@@ -52,7 +52,7 @@ export function DOBComponent(props: DOBComponentProps) {
 
   return (
     <div className={"dob-wrapper"}>
-      <Header value={freq} onChange={(v) => setFreq(v)} title={"DOB"} description={"simulation"} />
+      <Header value={freq} onChange={(v) => setFreq(v)} title={"DOB"} description={"Simulation"} />
       <ResizableCanvas id={id} onResize={onResize} onScroll={onScroll} rowCount={rowCount} rowHeight={40} />
     </div>
   );
