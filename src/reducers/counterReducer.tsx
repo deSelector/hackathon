@@ -1,32 +1,14 @@
 import { useReducer } from "react";
-import { initialState } from "../context/state";
+import { initialState, IntroType } from "../context/state";
 import { Action } from "./action";
 
-enum CounterAction {
-  Increase = "INCREASE",
-  Decrease = "DECREASE",
-}
+const ShowIntroAction = "ShowIntro";
 
-export const increaseAction = (payload: number = 1): Action<number> => ({
-  type: CounterAction.Increase,
-  payload,
+export const showIntroAction = (payload: IntroType): Action<IntroType> => ({
+  type: ShowIntroAction,
+  payload
 });
 
-export const decreaseAction = (payload: number = 1): Action<number> => ({
-  type: CounterAction.Decrease,
-  payload,
-});
+export let showIntroReducer = (state: IntroType, action: Action<IntroType>): IntroType => action.payload ?? state;
 
-export let counterReducer = (state: number, action: Action<number>): number => {
-  switch (action.type) {
-    case CounterAction.Increase:
-      return state + action.payload;
-    case CounterAction.Decrease:
-      return state - action.payload;
-    default:
-      return state;
-  }
-};
-
-export const useCounterReducer = () =>
-  useReducer(counterReducer, initialState.counter);
+export const useShowIntroReducer = () => useReducer(showIntroReducer, initialState.showIntro);

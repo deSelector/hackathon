@@ -18,7 +18,6 @@ export interface DOBComponentProps {
 export function DOBComponent(props: DOBComponentProps) {
   const [id] = useState<string>(props.id ?? "dob-canvas");
   const [rowCount, setRowCount] = useState<number>(0);
-  // const { counter, setCounter } = useDataContext();
   const [freq, setFreq] = useState<number>(UPDATE_FREQ);
   const [grid, setGrid] = useState<any>(null);
   const [size, setSize] = useState<{ width?: number; height?: number }>({

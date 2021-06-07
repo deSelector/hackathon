@@ -6,7 +6,6 @@ import { useRustWasm } from "../hooks";
 import { ResizableCanvas } from "./resizableCanvas";
 import "./styles.scss";
 import classnames from "classnames";
-// import { useDataContext } from "../context";
 import { generateTradeData, tradeSchema } from "../feeders";
 import { Header } from "./header";
 
@@ -19,7 +18,6 @@ export interface TapeComponentProps {
 export function TapeComponent(props: TapeComponentProps) {
   const [id] = useState<string>(props.id ?? "tape-canvas");
   const [rowCount, setRowCount] = useState<number>(0);
-  // const { counter, setCounter } = useDataContext();
   const [freq, setFreq] = useState<number>(UPDATE_FREQ);
   const [grid, setGrid] = useState<any>(null);
   const [size, setSize] = useState<{ width?: number; height?: number }>({

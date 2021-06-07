@@ -1,13 +1,19 @@
+export enum IntroType {
+  none = 0,
+  a = 1,
+  b = 2
+}
+
 export type State = {
   data: any;
-  counter: number;
+  showIntro: IntroType;
+  setShowIntro: (value: IntroType) => void;
   setData: (value: any) => void;
-  setCounter: (value: number) => void;
 };
 
 export const initialState: State = {
   data: undefined,
-  counter: 0,
+  showIntro: IntroType.none,
   setData: (data: any) => null,
-  setCounter: (value: number) => null,
+  setShowIntro: (value: IntroType) => null
 };

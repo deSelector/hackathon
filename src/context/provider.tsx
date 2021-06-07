@@ -1,19 +1,15 @@
 import { createContext, useContext, useState } from "react";
-import { increaseAction, useCounterReducer } from "../reducers/counterReducer";
-import { initialState, State } from "./state";
+import { showIntroAction, useShowIntroReducer } from "../reducers/counterReducer";
+import { initialState, IntroType, State } from "./state";
 import React from "react";
-const DataContext = createContext<State>(initialState);
 
+const DataContext = createContext<State>(initialState);
 export const useDataContext = () => useContext(DataContext);
 
 export function DataProvider({ children }: { children: JSX.Element }) {
   const [data, setData] = useState<any>();
-  const [counter, dispatch] = useCounterReducer();
-  const setCounter = (v: number) => dispatch(increaseAction(v));
+  const [showIntro, dispatch] = useShowIntroReducer();
+  const setShowIntro = (v: IntroType) => dispatch(showIntroAction(v));
 
-  return (
-    <DataContext.Provider value={{ data, setData, counter, setCounter }}>
-      {children}
-    </DataContext.Provider>
-  );
+  return <DataContext.Provider value={{ data, setData, showIntro, setShowIntro }}>{children}</DataContext.Provider>;
 }
