@@ -18,6 +18,8 @@ Assemble basic data-delivery portal by merging real-time market data subscriptio
 2. Not an endorsement for Canvas + WebAssembly + Rust as a preferred solution for fast data rendering
 3. Not meant to save the world from hunger or climate change
 
+https://user-images.githubusercontent.com/82620796/121120663-a1251e00-c7e3-11eb-8f6c-beeda3e9996c.mov
+
 ## How to initialize demo (mac version):
 
 1. Install Rust:
