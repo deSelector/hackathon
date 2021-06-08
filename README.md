@@ -20,6 +20,8 @@ Assemble basic data-delivery portal by merging real-time market data subscriptio
 
 https://user-images.githubusercontent.com/82620796/121120663-a1251e00-c7e3-11eb-8f6c-beeda3e9996c.mov
 
+https://user-images.githubusercontent.com/82620796/121123527-00396180-c7e9-11eb-8d88-979aac984dee.mov
+
 ## How to initialize demo (mac version):
 
 1. Install Rust:
