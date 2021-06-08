@@ -4,7 +4,7 @@ import { AccountInfo, Commitment, Connection, PublicKey } from "@solana/web3.js"
 import { RawData } from "../context";
 import { cryptos, fetchCryptos, CryptoInfo } from "./unirest";
 
-const URL = "https://devnet.solana.com";
+const URL = "https://api.devnet.solana.com";
 const ORACLE_MAPPING_PUBLIC_KEY = new PublicKey("ArppEFcsybCLE8CRtQJLQ9tLv2peGmQoKWFuiUWm4KBP");
 
 let conn: Connection;
