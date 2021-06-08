@@ -1,10 +1,10 @@
 ## What is it
 
-Extremely high-performance visualization demo of live market data feed supplied by Pyth Network and decentralized Solana blockchain.
+High-performance visualization of live market data feed supplied by Pyth Network and decentralized Solana blockchain.
 
-### Description
+### Goal
 
-Assemble basic data-delivery portal by merging real-time market data feed (Pyth + Solana) with static research (CoinGecko) and augment it with randomly generated high-frequenecy feeds to simulate a typical depth of book (DOB) and a Time and Sales windows.
+Assemble basic data-delivery portal by merging real-time market data feed (Pyth + Solana) with static research (CoinGecko) and augment it with randomly generated super high-frequenecy feed to simulate a typical depth of book (DOB) and a Time and Sales windows.
 
 ### Technology
 
@@ -14,7 +14,7 @@ Assemble basic data-delivery portal by merging real-time market data feed (Pyth 
 
 ## What is it not
 
-1. Not a production-ready app for mass consumption.
+1. Not a production-ready app for mass consumption
 2. Not an endorsement for Canvas + WebAssembly + Rust as a preferred solution for fast data rendering
 3. Not meant to save the world from hunger
 

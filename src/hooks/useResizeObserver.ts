@@ -12,7 +12,6 @@ export const useResizeObserver = ({ callback, element }: { callback: ResizeObser
       }
     };
 
-    // if we are already observing old element
     if (observer?.current && current) {
       observer.current.unobserve(current);
     }

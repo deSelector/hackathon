@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from "react";
-import { showIntroAction, useShowIntroReducer } from "../reducers/counterReducer";
+import { showIntroAction, useShowIntroReducer } from "../reducers";
 import { initialState, IntroType, State } from "./state";
 import React from "react";
 
