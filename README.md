@@ -1,3 +1,23 @@
+## What is it
+
+Extremely high-performance visualization demo of live market data feed supplied by Pyth Network and decentralized Solana blockchain.
+
+### Description
+
+Assemble basic data-delivery portal by merging real-time market data feed (Pyth + Solana) with static research (CoinGecko) and augment it with randomly generated high-frequenecy feeds to simulate a typical depth of book (DOB) and a Time and Sales windows.
+
+### Technology
+
+1. UI: Typescript + React + Hooks
+2. Image Generation: WebAssembly on Rust
+3. Data Rendering: canvas-based grids
+
+## What is it not
+
+1. Not a production-ready app for mass consumption.
+2. Not an endorsement for Canvas + WebAssembly + Rust as a preferred solution for fast data rendering
+3. Not meant to save the world from hunger
+
 ## How to initialize demo (mac version):
 
 1. Install Rust:
