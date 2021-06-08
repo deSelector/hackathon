@@ -7,32 +7,40 @@ export function Intro() {
   const { showIntro, setShowIntro } = useDataContext();
 
   return (
-    <div className={classnames("instructions-panel", { showIntro })}>
-      <div>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed finibus risus ut feugiat gravida. Integer vitae sem
-        iaculis, congue odio vel, iaculis leo. Integer condimentum tristique est eu semper. Duis quis finibus nibh. Cras
-        ut lobortis felis. Donec faucibus felis eu purus interdum auctor. Cras dignissim justo et lorem tempus, a rutrum
-        nisi dictum. Aenean egestas, erat et congue fermentum, est libero iaculis tellus, vitae iaculis leo sapien sed
-        lorem. Curabitur ut leo nibh. Phasellus ac lectus vel est blandit ornare. Mauris eget lacus vestibulum, faucibus
-        augue id, faucibus risus. Phasellus et euismod libero, ac fringilla dui. Nam feugiat, nulla id mollis fermentum,
-        lectus purus dapibus mi, sit amet porttitor libero erat a sem. Morbi ornare id magna id ornare. Praesent
-        aliquet, ligula at viverra porttitor, ipsum lorem blandit metus, vel fermentum sapien metus quis velit. Morbi
-        risus est, molestie eu elit vel, consequat posuere quam. Nulla congue vel massa nec congue. Vivamus elementum
-        ante augue, vel pharetra massa condimentum eu. Phasellus sagittis rhoncus sem, sed vulputate metus euismod in.
-        Donec finibus, sapien eget congue accumsan, quam purus ultrices orci, in varius elit ligula in leo. In lectus
-        magna, lobortis vel rutrum ut, eleifend vel purus. Pellentesque metus nisi, pulvinar in ipsum non, iaculis
-        tincidunt ex. Pellentesque sed suscipit dolor. Duis vel aliquam mi. Donec nec libero in orci interdum commodo.
-        In a laoreet ipsum. Etiam vel lorem nisl. Pellentesque massa mauris, tempus at consectetur non, fringilla eget
-        massa. Vivamus id felis semper justo auctor mollis ac in tellus. Sed viverra posuere orci. Fusce ac suscipit
-        nibh. Nam volutpat feugiat enim sit amet hendrerit. Cras ornare nunc aliquam quam suscipit porta. Phasellus
-        vulputate velit at urna interdum, vel maximus odio commodo. Morbi libero diam, venenatis quis ipsum non, rhoncus
-        mattis nisl. Interdum et malesuada fames ac ante ipsum primis in faucibus. Mauris tincidunt, tortor et bibendum
-        dapibus, ex quam imperdiet magna, non volutpat erat urna id ante. Suspendisse vel porta mauris, et consequat
-        massa. Phasellus sed nulla rhoncus tellus ultrices tincidunt sit amet in leo. Donec leo tortor, commodo vitae
-        volutpat vitae, egestas non turpis. Curabitur placerat sapien nibh, ac vestibulum mi sagittis at. Etiam lobortis
-        eget orci ac accumsan. Aenean ut ultricies nulla. In hac habitasse platea dictumst. Aliquam ac mi finibus,
-        elementum nibh quis, scelerisque nunc. Aliquam rhoncus lorem orci, id dignissim odio finibus ut. Nullam tempus
-        condimentum leo et vehicula. Praesent scelerisque orci gravida purus rutrum aliquam.
+    <div className={classnames("intro-panel", { showIntro })}>
+      <div className={classnames("intro-a", { showIntro: showIntro === IntroType.a })}>
+        <h2>Goal</h2>
+        <p>
+          Develop extremely high-performance visualization of live market data feed supplied by Pyth Network on
+          decentralized Solana blockchain.
+        </p>
+
+        <h2>Description</h2>
+        <p>
+          A primary goal of this Web3 project is to assemble basic data-delivery portal by merging real-time market data
+          feed (<i>Pyth + Solana</i>) with static research (<i>CoinGecko</i>) and augment it with randomly generated
+          high-frequenecy feeds to simulate a typical depth of book (DOB) and a Time and Sales windows.
+          <h2>Technology</h2>
+          <ul>
+            <li>
+              UI: <em>Typescript + React + Hooks</em>{" "}
+            </li>
+            <li>
+              Image Generation: <em>WebAssembly on Rust</em>
+            </li>
+            <li>
+              Data Rendering: <em>canvas-based grids </em>
+            </li>
+          </ul>
+        </p>
+      </div>
+      <div className={classnames("intro-b", { showIntro: showIntro === IntroType.b })}>
+        <h2>What is it not</h2>
+        <ul>
+          <li>Not a production-ready app for mass consumption.</li>
+          <li>Not an endorsement for Canvas + WebAssembly + Rust as a preferred solution for fast data rendering</li>
+          <li>Not meant to save the world from hunger</li>
+        </ul>
       </div>
       <button onClick={() => setShowIntro(IntroType.none)}>{"got it"}</button>
     </div>
