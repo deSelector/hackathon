@@ -17,9 +17,9 @@ export function Intro() {
 
         <h2>Goal</h2>
         <p>
-          Assemble basic data-delivery portal by merging real-time market data feed (<i>Pyth + Solana</i>) with static
-          research (<i>CoinGecko</i>) and augment it with randomly generated super high-frequenecy feed to simulate a
-          typical depth of book (DOB) and a Time and Sales windows.
+          Assemble basic data-delivery portal by merging real-time market data subscription (<i>Pyth + Solana</i>) with
+          static research (<i>CoinGecko</i>) and augmented with randomly generated super high-frequenecy feed to
+          simulate a Depth of Book and Time and Sales windows.
         </p>
         <h2>Technology</h2>
         <ul>
@@ -39,7 +39,7 @@ export function Intro() {
         <ul>
           <li>Not a production-ready app for mass consumption</li>
           <li>Not an endorsement for Canvas + WebAssembly + Rust as a preferred solution for fast data rendering</li>
-          <li>Not meant to save the world from hunger</li>
+          <li>Not meant to save the world from hunger and climate change</li>
         </ul>
       </div>
       <button onClick={() => setShowIntro(IntroType.none)}>{"got it"}</button>

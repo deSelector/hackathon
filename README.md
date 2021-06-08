@@ -4,7 +4,7 @@ High-performance visualization of live market data feed supplied by Pyth Network
 
 ### Goal
 
-Assemble basic data-delivery portal by merging real-time market data feed (Pyth + Solana) with static research (CoinGecko) and augment it with randomly generated super high-frequenecy feed to simulate a typical depth of book (DOB) and a Time and Sales windows.
+Assemble basic data-delivery portal by merging real-time market data subscription (Pyth + Solana) with static research (CoinGecko) and augmented with randomly generated super high-frequenecy feed to simulate a Depth of Book and Time and Sales windows.
 
 ### Technology
 
@@ -16,7 +16,7 @@ Assemble basic data-delivery portal by merging real-time market data feed (Pyth 
 
 1. Not a production-ready app for mass consumption
 2. Not an endorsement for Canvas + WebAssembly + Rust as a preferred solution for fast data rendering
-3. Not meant to save the world from hunger
+3. Not meant to save the world from hunger or climate change
 
 ## How to initialize demo (mac version):
 
