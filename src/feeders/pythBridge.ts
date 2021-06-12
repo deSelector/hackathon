@@ -131,7 +131,10 @@ const setPrice = (product: any, buffer: Buffer) => {
 
   const obj = priceMap.get(delta.symbol);
   if (obj) {
-    Object.assign(obj, delta);
+    // pyth started sending updates for Equities on weekends. Why?
+    if (obj.price !== delta.price) {
+      Object.assign(obj, delta);
+    }
   } else {
     const quote = { ...createQuote(cryptos.get(delta.symbol) || ({} as CryptoInfo)), ...delta, asset } as PythQuote;
     priceMap.set(quote.key, quote);
