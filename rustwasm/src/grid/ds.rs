@@ -47,53 +47,52 @@ impl<'a> DataSource<'a> {
 
 impl<'a> DataSource<'a> {
     pub fn get_value_f64(&self, row: usize, col: &Column) -> Option<f64> {
-        match row {
-            row if row < self.row_count && self.data.len() > 0 => {
-                let index = self.get_cell_index(row, col);
+        let index = self.get_cell_index(row, col);
+        match index {
+            Some(i) => {
                 // note: potential performance impact - verify.
-                let v = BigEndian::read_f64(&self.data[index..index + num_size()]);
+                let v = BigEndian::read_f64(&self.data[i..i + num_size()]);
                 Some(v)
             }
             _ => None,
         }
     }
 
-    pub fn get_sparkline(&self, row: usize, col: &Column) -> Option<&Vec<f64>> {
-        match row {
-            row if row < self.row_count && self.data.len() > 0 => {
-                let id = self.get_value_str(row, col);
-
-                if self.sparks.unwrap().len() > 0 {
-                    self.sparks.unwrap().get(&hash_code(&id))
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        }
-    }
-
-    pub fn get_value_str(&self, row: usize, col: &Column) -> String {
-        match row {
-            row if row < self.row_count => {
-                let index = self.get_cell_index(row, col);
-                let str_slice = &self.data[index..index + col.size];
+    pub fn get_value_str(&self, row: usize, col: &Column) -> Option<String> {
+        let index = self.get_cell_index(row, col);
+        match index {
+            Some(i) => {
+                let str_slice = &self.data[i..i + col.size];
                 let s = String::from_utf8_lossy(str_slice);
-                return String::from(s.trim_end_matches(char::from(0)));
+                Some(String::from(s.trim_end_matches(char::from(0))))
             }
-            _ => String::from(""),
+            None => None, // String::from(""),
         }
     }
+    pub fn get_sparkline(&self, row: usize, col: &Column) -> Option<&Vec<f64>> {
+        if self.sparks.unwrap().len() > 0 {
+            let id = self.get_value_str(row, col);
+            if id.is_some() {
+                return self.sparks.unwrap().get(&hash_code(&id.unwrap()));
+            }
+        }
+        None
+    }
 
-    pub fn get_cell_index(&self, row: usize, col: &Column) -> usize {
-        let index = row * self.data_width + col.data_offset;
-        assert_lt!(
-            index,
-            self.data.len(),
-            "buffer index {} out of bounds {}",
-            index,
-            self.data.len()
-        );
-        index
+    fn get_cell_index(&self, row: usize, col: &Column) -> Option<usize> {
+        if self.row_count > 0 && row < self.row_count {
+            let index = row * self.data_width + col.data_offset;
+            if index < self.data.len() {
+                return Some(index);
+            }
+            assert_lt!(
+                index,
+                self.data.len(),
+                "buffer index {} out of bounds {}",
+                index,
+                self.data.len()
+            );
+        }
+        None
     }
 }

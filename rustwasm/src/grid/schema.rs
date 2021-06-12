@@ -13,6 +13,11 @@ pub struct Schema {
 }
 
 impl Schema {
+    pub fn new() -> Schema {
+        Schema {
+            ..Default::default()
+        }
+    }
     pub fn get_col_by_id(&self, id: &str) -> Option<&Column> {
         self.cols.iter().find(|o| o.id == id)
     }

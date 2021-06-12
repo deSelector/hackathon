@@ -38,6 +38,8 @@ pub struct Column {
     pub highlight: bool,
     #[serde(default)]
     pub suppress_zero: bool, // switch to format later
+    #[serde(default)]
+    pub format: String,
 }
 
 impl Default for ColumnType {
@@ -54,21 +56,32 @@ impl Column {
         }
     }
 
-    pub fn format_value(&self, value: f64) -> String {
-        match self.col_type {
-            ColumnType::DateTime | ColumnType::Timestamp | ColumnType::Date => Local
-                .timestamp(value as i64 / 1000, 0)
-                .format("%r")
-                .to_string(),
-            ColumnType::Number => {
-                if value == 0.0 && self.suppress_zero {
-                    String::from("")
-                } else {
-                    format_args!("{:.*}", self.precision(), value).to_string()
+    pub fn format_value(&self, value: Option<f64>) -> Option<String> {
+        if value.is_some() {
+            let v = value.unwrap();
+            let formatted = match self.col_type {
+                ColumnType::DateTime | ColumnType::Timestamp | ColumnType::Date => Local
+                    .timestamp(v as i64 / 1000, 0)
+                    .format(if self.format.is_empty() {
+                        "%r"
+                    } else {
+                        &self.format
+                    })
+                    .to_string(),
+                ColumnType::Number => {
+                    if v == 0.0 && self.suppress_zero {
+                        String::from("")
+                    } else {
+                        format_args!("{:.*}", self.precision(), v).to_string()
+                    }
                 }
-            }
-            ColumnType::Sparkline => String::from(""),
-            _ => value.to_string(),
+                ColumnType::Sparkline => String::from(""),
+                _ => v.to_string(),
+            };
+
+            Some(formatted)
+        } else {
+            None
         }
     }
 }

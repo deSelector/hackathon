@@ -115,33 +115,33 @@ impl<'a> GridRenderer<'a> {
         ctx.set_stroke_style(&"#232832".into());
 
         // Vertical lines.
-        let mut index = 0;
-        let visible_col_count = self.schema.unwrap().visible_col_count;
+        let mut col_index = 0;
         let last_y = self.data_bottom(ds.row_count - self.top_index);
-        loop {
-            let x = self.left() + (index as f64 * self.col_width()).floor();
-            if x < self.right() && index < visible_col_count {
+        for _col in self.schema.unwrap().get_visible_cols() {
+            let x = self.get_x(col_index);
+            if x < self.right() {
                 vertical_line(ctx, self.top(), last_y, x);
-                index += 1;
+                col_index += 1;
             } else {
                 break;
             }
         }
 
         // Horizontal lines.
-        let mut j = 0;
+        let mut row_index = 0;
         loop {
-            let y = self.top() + (j * self.row_height) as f64;
-            if y < self.bottom() && j <= ds.row_count - self.top_index + HEADER_LINES {
+            let y = self.get_y(row_index);
+            if y < self.bottom() && row_index <= ds.row_count - self.top_index + HEADER_LINES {
                 horizontal_line(ctx, self.left(), self.right(), y);
-                j += 1;
+                row_index += 1;
             } else {
                 break;
             }
         }
 
-        // final bottom horizontal line
+        // final bottom/right lines
         horizontal_line(ctx, self.left(), self.right(), self.bottom());
+        vertical_line(ctx, self.top(), self.bottom(), self.right());
 
         ctx.stroke();
     }
@@ -149,15 +149,8 @@ impl<'a> GridRenderer<'a> {
     pub fn render_header(&self) {
         let mut index = 0;
         for col in self.schema.unwrap().get_visible_cols() {
-            let x = self.left() + self.cell_x(index);
-            self.render_text_aligned(
-                col.name.as_str(),
-                x,
-                0_f64,
-                self.col_width(),
-                "center",
-                false,
-            );
+            let x = self.get_x(index);
+            self.render_text(col.name.as_str(), x, 0_f64, "center", false);
             index += 1;
         }
     }
@@ -166,7 +159,7 @@ impl<'a> GridRenderer<'a> {
         let ts_col = self.schema.unwrap().get_col_by_type(ColumnType::Timestamp);
 
         for row_index in 0_usize.. {
-            let y = self.top() + ((row_index + HEADER_LINES) * self.row_height) as f64;
+            let y = self.get_y(row_index + HEADER_LINES);
             let row = self.top_index + row_index;
 
             if y < self.bottom() && row < ds.row_count {
@@ -176,12 +169,11 @@ impl<'a> GridRenderer<'a> {
                     false
                 };
 
-                let mut index = 0;
+                let mut col_index = 0;
                 for col in self.schema.unwrap().get_visible_cols() {
-                    let x = self.left() + self.cell_x(index);
-                    self.render_text_formatted(ds, row, x, y, col, highlight && col.highlight);
-
-                    index += 1;
+                    let x = self.get_x(col_index);
+                    self.render_cell(ds, row, x, y, col, highlight && col.highlight);
+                    col_index += 1;
                 }
             } else {
                 break;
@@ -189,7 +181,7 @@ impl<'a> GridRenderer<'a> {
         }
     }
 
-    fn render_text_formatted(
+    fn render_cell(
         &self,
         ds: &DataSource,
         row: usize,
@@ -203,24 +195,35 @@ impl<'a> GridRenderer<'a> {
             return;
         }
 
-        let align = match col.align.as_str() {
-            "" => match col.col_type {
-                ColumnType::String => "left",
-                ColumnType::Date | ColumnType::DateTime | ColumnType::Timestamp => "center",
-                _ => "right",
-            },
-            _ => col.align.as_str(),
-        };
-
         let v = match col.col_type {
             ColumnType::String => ds.get_value_str(row, col),
-            _ => {
-                let val = ds.get_value_f64(row, col).unwrap_or_default();
-                col.format_value(val)
-            }
+            _ => col.format_value(ds.get_value_f64(row, col)),
         };
 
-        self.render_text_aligned(&v, x, y, self.col_width(), align, highlight);
+        if v.is_some() {
+            let align = match col.align.as_str() {
+                "" => match col.col_type {
+                    ColumnType::String => "left",
+                    ColumnType::Date | ColumnType::DateTime | ColumnType::Timestamp => "center",
+                    _ => "right",
+                },
+                _ => col.align.as_str(),
+            };
+            self.render_text(&v.unwrap(), x, y, align, highlight);
+        }
+    }
+
+    fn render_text(&self, text: &str, x: f64, y: f64, align: &str, highlight: bool) {
+        fill_text_aligned(
+            self.get_ctx(),
+            text,
+            x,
+            y,
+            self.col_width(),
+            self.row_height as f64,
+            align,
+            highlight,
+        );
     }
 
     fn render_sparkline(&self, ds: &DataSource, row: usize, x: f64, y: f64, col: &Column) {
@@ -248,27 +251,6 @@ impl<'a> GridRenderer<'a> {
         }
     }
 
-    pub fn render_text_aligned(
-        &self,
-        text: &str,
-        x: f64,
-        y: f64,
-        width: f64,
-        align: &str,
-        highlight: bool,
-    ) {
-        fill_text_aligned(
-            self.get_ctx(),
-            text,
-            x,
-            y,
-            width,
-            self.row_height as f64,
-            align,
-            highlight,
-        );
-    }
-
     pub fn clip_begin(&self) {
         clip_begin(
             self.get_ctx(),
@@ -285,14 +267,12 @@ impl<'a> GridRenderer<'a> {
 }
 
 impl<'a> GridRenderer<'a> {
-    pub fn cell_x(&self, index: usize) -> f64 {
-        index as f64 * self.col_width()
-    }
-}
-
-impl<'a> GridRenderer<'a> {
     pub fn get_ctx(&self) -> &CanvasRenderingContext2d {
         self.ctx.unwrap()
+    }
+
+    pub fn get_visible_col_count(&self) -> usize {
+        self.schema.unwrap().visible_col_count
     }
     pub fn set_top_index(&mut self, top_index: usize) {
         self.top_index = top_index;
@@ -333,5 +313,13 @@ impl<'a> GridRenderer<'a> {
     }
     pub fn mid(&self) -> f64 {
         self.left() + ((self.client_width() / 2.0).round())
+    }
+
+    pub fn get_x(&self, col_index: usize) -> f64 {
+        self.left() + (col_index as f64 * self.col_width()).floor()
+    }
+
+    pub fn get_y(&self, row_index: usize) -> f64 {
+        self.top() + (row_index * self.row_height) as f64
     }
 }

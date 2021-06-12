@@ -75,4 +75,8 @@ impl Grid {
     pub fn set_top_index(&mut self, top_index: usize) {
         self.top_index = top_index;
     }
+
+    pub fn get_id(&self) -> String {
+        self.id.to_string()
+    }
 }

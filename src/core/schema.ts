@@ -10,6 +10,7 @@ export interface Column {
   hidden?: boolean;
   highlight?: boolean;
   suppress_zero?: boolean;
+  format?: string;
 }
 
 export enum ColumnType {

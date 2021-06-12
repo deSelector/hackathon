@@ -30,7 +30,8 @@ export const tradeSchema: Schema = {
     {
       id: "time",
       name: "Time",
-      col_type: ColumnType.Timestamp
+      col_type: ColumnType.Timestamp,
+      format: "%T"
     }
   ]
 };

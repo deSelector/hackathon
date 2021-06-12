@@ -128,11 +128,11 @@ impl DOB {
             self.get_max_cum_size(right_ds, cum_col) as u32,
         ) as f64;
 
-        return if max_cumulative_value > 0.0 {
+        if max_cumulative_value > 0.0 {
             client_width / max_cumulative_value
         } else {
             0.0
-        };
+        }
     }
 
     fn render_pyramid(&self, gr: &GridRenderer, ds: &DataSource, side: Side, ratio: f64) {
