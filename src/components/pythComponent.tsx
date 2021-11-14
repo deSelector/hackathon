@@ -10,6 +10,7 @@ import { Header } from "./header";
 import { Banner } from "./banner";
 
 const UPDATE_FREQ = 50;
+const ROW_HEIGHT = 40;
 
 export interface PythComponentProps {
   id?: string;
@@ -32,6 +33,7 @@ export function PythComponent(props: PythComponentProps) {
 
   const collectSparks = () => {
     if (grid && !grid.has_sparks() && cryptos?.size) {
+      grid.set_row_height(ROW_HEIGHT);
       grid.set_sparks(
         Array.from(cryptos).reduce(
           (p, [key, value]: [string, CryptoInfo]) => ((p[key] = value.market_data?.sparkline_7d?.price ?? []), p),
@@ -65,7 +67,13 @@ export function PythComponent(props: PythComponentProps) {
     <div className={"solana-wrapper"}>
       <Banner />
       <Header value={freq} title="Market" description={"LIVE Pyth on Solana + CoinGecko"} />
-      <ResizableCanvas id={id} onResize={onResize} onScroll={onScroll} rowCount={rowCount} rowHeight={40} />
+      <ResizableCanvas
+        id={id}
+        onResize={onResize}
+        onScroll={onScroll}
+        rowCount={rowCount}
+        rowHeight={grid?.row_height}
+      />
     </div>
   );
 }

@@ -52,7 +52,13 @@ export function TapeComponent(props: TapeComponentProps) {
   return (
     <div className={"tape-wrapper"}>
       <Header value={freq} onChange={(v) => setFreq(v)} title={"Trades"} description={"Simulation"} />
-      <ResizableCanvas id={id} onResize={onResize} onScroll={onScroll} rowCount={rowCount} rowHeight={40} />
+      <ResizableCanvas
+        id={id}
+        onResize={onResize}
+        onScroll={onScroll}
+        rowCount={rowCount}
+        rowHeight={grid?.row_height}
+      />
     </div>
   );
 }

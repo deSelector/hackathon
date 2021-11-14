@@ -22,6 +22,7 @@ pub struct Grid {
     schema: Schema,
     sparks: Sparks,
     top_index: usize,
+    row_height: usize,
 }
 
 #[wasm_bindgen]
@@ -44,7 +45,16 @@ impl Grid {
         width: u32,
         height: u32,
     ) {
-        GridRenderer::new(&ctx(&self.id), &self.schema, left, top, width, height).render(
+        GridRenderer::new(
+            &ctx(&self.id),
+            &self.schema,
+            left,
+            top,
+            width,
+            height,
+            self.row_height,
+        )
+        .render(
             &DataSource::new(data, data_width, Some(&self.sparks)),
             self.top_index,
         );
@@ -76,6 +86,9 @@ impl Grid {
         self.top_index = top_index;
     }
 
+    pub fn set_row_height(&mut self, row_height: usize) {
+        self.row_height = row_height;
+    }
     pub fn get_id(&self) -> String {
         self.id.to_string()
     }

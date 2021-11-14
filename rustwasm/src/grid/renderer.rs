@@ -50,6 +50,15 @@ pub struct GridRenderer<'a> {
     top_index: usize,
 }
 
+// impl<'a> Default for GridRenderer<'a> {
+//     fn default() -> GridRenderer<'static> {
+//         GridRenderer{
+//             row_height: ROW_HEIGHT,
+//             // ..Default::default()
+//         }
+//     }
+// }
+
 impl<'a> GridRenderer<'a> {
     pub fn new(
         ctx: &'a CanvasRenderingContext2d,
@@ -58,7 +67,13 @@ impl<'a> GridRenderer<'a> {
         top: u32,
         width: u32,
         height: u32,
+        row_height: usize,
     ) -> GridRenderer<'a> {
+        let row_height = if row_height == 0 {
+            ROW_HEIGHT
+        } else {
+            row_height
+        };
         GridRenderer {
             ctx: Some(ctx),
             schema: Some(schema),
@@ -66,7 +81,7 @@ impl<'a> GridRenderer<'a> {
             top,
             width,
             height,
-            row_height: ROW_HEIGHT,
+            row_height,
             margin: MARGIN,
             ..Default::default()
         }
@@ -274,9 +289,7 @@ impl<'a> GridRenderer<'a> {
     pub fn get_visible_col_count(&self) -> usize {
         self.schema.unwrap().visible_col_count
     }
-    pub fn set_top_index(&mut self, top_index: usize) {
-        self.top_index = top_index;
-    }
+
     pub fn calc_col_width(&mut self) {
         let visible_count = self.schema.unwrap().get_visible_row_count();
         assert!(visible_count > 0);
@@ -321,5 +334,15 @@ impl<'a> GridRenderer<'a> {
 
     pub fn get_y(&self, row_index: usize) -> f64 {
         self.top() + (row_index * self.row_height) as f64
+    }
+}
+
+impl<'a> GridRenderer<'a> {
+    pub fn set_top_index(&mut self, top_index: usize) {
+        self.top_index = top_index;
+    }
+
+    pub fn set_row_height(&mut self, row_height: usize) {
+        self.row_height = row_height;
     }
 }
